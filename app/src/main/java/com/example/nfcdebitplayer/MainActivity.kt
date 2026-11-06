@@ -2,16 +2,21 @@ package com.example.nfcdebitplayer
 
 import android.content.Intent
 import android.media.MediaPlayer
+import android.net.Uri
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.IsoDep
 import android.os.Bundle
 import android.os.SystemClock
+import android.provider.OpenableColumns
 import android.provider.Settings
 import android.view.View
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.nfcdebitplayer.databinding.ActivityMainBinding
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -30,6 +35,11 @@ class MainActivity : AppCompatActivity() {
     private val logDateFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
     private val logEntries = StringBuilder()
 
+    // Launcher for picking custom audio files (mp3, wav, ogg, m4a, etc.)
+    private val pickAudioLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let { handleCustomAudioSelected(it) }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -39,6 +49,7 @@ class MainActivity : AppCompatActivity() {
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
 
         setupUI()
+        updateAudioTrackDisplay()
         appendLog("App initialized.")
         appendLog("Privacy mode active: No APDU commands, zero financial data access.")
     }
@@ -69,8 +80,17 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(Settings.ACTION_NFC_SETTINGS))
         }
 
+        binding.btnSelectAudio.setOnClickListener {
+            // Open system file picker for any audio format
+            pickAudioLauncher.launch("audio/*")
+        }
+
+        binding.btnResetAudio.setOnClickListener {
+            resetToDefaultAudio()
+        }
+
         binding.btnPlayAudio.setOnClickListener {
-            appendLog("Manual 'Play Sound' button pressed.")
+            appendLog("Manual 'Test Play' button pressed.")
             playAudio(trigger = "Manual")
         }
 
@@ -82,6 +102,66 @@ class MainActivity : AppCompatActivity() {
             logEntries.clear()
             binding.tvDiagnosticLog.text = ""
             appendLog("Log cleared.")
+        }
+    }
+
+    /**
+     * Copies selected audio from the Uri into internal app storage
+     * so it persists cleanly across app restarts.
+     */
+    private fun handleCustomAudioSelected(uri: Uri) {
+        try {
+            var fileName = "Custom Audio"
+            contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (nameIndex != -1 && cursor.moveToFirst()) {
+                    fileName = cursor.getString(nameIndex) ?: "Custom Audio"
+                }
+            }
+
+            val targetFile = File(filesDir, "custom_card_sound")
+            contentResolver.openInputStream(uri)?.use { input ->
+                FileOutputStream(targetFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+
+            val prefs = getSharedPreferences("nfc_prefs", MODE_PRIVATE)
+            prefs.edit()
+                .putBoolean("is_custom_audio", true)
+                .putString("custom_audio_name", fileName)
+                .apply()
+
+            updateAudioTrackDisplay()
+            appendLog("Selected custom audio: $fileName")
+        } catch (e: Exception) {
+            appendLog("Failed to set custom audio: ${e.message}")
+        }
+    }
+
+    private fun resetToDefaultAudio() {
+        val prefs = getSharedPreferences("nfc_prefs", MODE_PRIVATE)
+        prefs.edit().putBoolean("is_custom_audio", false).apply()
+        val customFile = File(filesDir, "custom_card_sound")
+        if (customFile.exists()) {
+            customFile.delete()
+        }
+        updateAudioTrackDisplay()
+        appendLog("Reset audio to default chime.")
+    }
+
+    private fun updateAudioTrackDisplay() {
+        val prefs = getSharedPreferences("nfc_prefs", MODE_PRIVATE)
+        val isCustom = prefs.getBoolean("is_custom_audio", false)
+        val name = prefs.getString("custom_audio_name", null)
+
+        val customFile = File(filesDir, "custom_card_sound")
+        if (isCustom && customFile.exists() && name != null) {
+            binding.tvCurrentTrack.text = "Audio: $name"
+            binding.btnResetAudio.visibility = View.VISIBLE
+        } else {
+            binding.tvCurrentTrack.text = getString(R.string.audio_current_track_default)
+            binding.btnResetAudio.visibility = View.GONE
         }
     }
 
@@ -116,8 +196,6 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * Enables Android Reader Mode specifically tuned for ISO-DEP contactless cards.
-     * FLAG_READER_SKIP_NDEF_CHECK avoids overhead trying to parse NDEF on payment cards.
-     * FLAG_READER_NO_PLATFORM_SOUNDS allows our custom audio player to provide the feedback.
      */
     private fun enableNfcReaderMode() {
         val adapter = nfcAdapter ?: return
@@ -146,7 +224,6 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * Callback invoked when an NFC tag/contactless card enters the RF field.
-     * Note: This callback executes on an Android Binder background thread.
      */
     private fun handleDiscoveredTag(tag: Tag) {
         val now = SystemClock.elapsedRealtime()
@@ -189,11 +266,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Plays the audio file stored in res/raw/card_chime.wav.
+     * Plays either the custom chosen audio file or the default chime.
      */
     private fun playAudio(trigger: String) {
         try {
-            // If already playing, stop previous instance cleanly
             mediaPlayer?.let {
                 if (it.isPlaying) {
                     it.stop()
@@ -201,7 +277,26 @@ class MainActivity : AppCompatActivity() {
                 it.release()
             }
 
-            mediaPlayer = MediaPlayer.create(this, R.raw.card_chime).apply {
+            val prefs = getSharedPreferences("nfc_prefs", MODE_PRIVATE)
+            val isCustom = prefs.getBoolean("is_custom_audio", false)
+            val customFile = File(filesDir, "custom_card_sound")
+
+            mediaPlayer = if (isCustom && customFile.exists()) {
+                MediaPlayer().apply {
+                    setDataSource(customFile.absolutePath)
+                    prepare()
+                }
+            } else {
+                MediaPlayer.create(this, R.raw.card_chime)
+            }
+
+            val trackName = if (isCustom && customFile.exists()) {
+                prefs.getString("custom_audio_name", "Custom Audio") ?: "Custom Audio"
+            } else {
+                "Default Chime"
+            }
+
+            mediaPlayer?.apply {
                 setOnCompletionListener {
                     binding.tvAudioStatus.text = getString(R.string.audio_status_stopped)
                     appendLog("Audio playback completed.")
@@ -209,8 +304,8 @@ class MainActivity : AppCompatActivity() {
                 start()
             }
 
-            binding.tvAudioStatus.text = "Status: Playing ($trigger trigger)"
-            appendLog("Audio playing ($trigger trigger)...")
+            binding.tvAudioStatus.text = "Status: Playing ($trackName)"
+            appendLog("Playing audio: $trackName ($trigger trigger)...")
         } catch (e: Exception) {
             appendLog("Audio Error: ${e.message}")
         }

@@ -208,10 +208,49 @@
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
+                    <!-- Current Selected Audio File Indicator -->
+                    <TextView
+                        android:id="@+id/tvCurrentTrack"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/audio_current_track_default"
+                        android:textColor="@color/on_surface_variant"
+                        android:textSize="13sp" />
+
+                    <!-- Audio Selector Buttons -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSelectAudio"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="4dp"
+                            android:layout_weight="1"
+                            android:text="@string/btn_select_audio"
+                            android:textSize="12sp"
+                            app:icon="@drawable/ic_music" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnResetAudio"
+                            style="@style/Widget.Material3.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/btn_reset_audio"
+                            android:textSize="11sp"
+                            android:visibility="gone"
+                            tools:visibility="visible" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
                         android:orientation="horizontal">
 
                         <com.google.android.material.button.MaterialButton

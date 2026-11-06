@@ -18,8 +18,11 @@
     <!-- Audio Controls Strings -->
     <string name="audio_status_title">Audio Playback</string>
     <string name="audio_status_stopped">Status: Stopped</string>
-    <string name="audio_status_playing">Status: Playing (card detected chime)</string>
-    <string name="btn_play_audio">Play Sound</string>
+    <string name="audio_status_playing">Status: Playing</string>
+    <string name="audio_current_track_default">Audio File: Default Chime (card_chime.wav)</string>
+    <string name="btn_select_audio">Choose Audio from Phone</string>
+    <string name="btn_reset_audio">Reset to Default Sound</string>
+    <string name="btn_play_audio">Test Play</string>
     <string name="btn_stop_audio">Stop Sound</string>
 
     <!-- Feasibility & Diagnostics -->
