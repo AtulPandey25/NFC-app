@@ -31,77 +31,199 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Card 1: NFC Hardware Status -->
+            <!-- NFC Hardware Status Indicator (Clean, No heading) -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardNfcStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
+                android:layout_marginBottom="14dp"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="1dp"
                 app:strokeColor="@color/card_stroke"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="12dp">
+
+                    <ImageView
+                        android:id="@+id/imgNfcStatus"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:contentDescription="@string/app_name"
+                        android:src="@drawable/ic_nfc" />
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:id="@+id/tvNfcStatus"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="@string/nfc_status_title"
-                        android:textColor="@color/on_surface_variant"
-                        android:textSize="12sp"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:text="@string/nfc_status_ready"
+                        android:textColor="@color/text_black"
+                        android:textSize="14sp"
                         android:textStyle="bold" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <ImageView
-                            android:id="@+id/imgNfcStatus"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:contentDescription="@string/nfc_status_title"
-                            android:src="@drawable/ic_nfc" />
-
-                        <TextView
-                            android:id="@+id/tvNfcStatus"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="12dp"
-                            android:layout_weight="1"
-                            android:text="@string/nfc_status_ready"
-                            android:textColor="@color/on_surface"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnEnableNfc"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        style="@style/Widget.Material3.Button.TonalButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
                         android:text="@string/btn_enable_nfc"
+                        android:textSize="12sp"
                         android:visibility="gone"
                         tools:visibility="visible" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Card 2: Mobile Phone NFC Enable / Disable Toggle -->
+            <!-- Hero Tap Card: Clean Blue, Black & White with Graphic Illustration -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardDetectionStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="14dp"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="2dp"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    android:padding="24dp">
+
+                    <ImageView
+                        android:id="@+id/imgCardIcon"
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
+                        android:layout_marginBottom="16dp"
+                        android:contentDescription="@string/app_name"
+                        android:src="@drawable/ic_nfc_tap_hero" />
+
+                    <TextView
+                        android:id="@+id/tvDetectionStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="@string/detection_waiting"
+                        android:textColor="@color/text_black"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvDetectionPrompt"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:gravity="center"
+                        android:text="@string/detection_prompt_hint"
+                        android:textColor="@color/text_muted"
+                        android:textSize="13sp" />
+
+                    <!-- Prompt when a new card/device is detected with NO audio assigned -->
+                    <LinearLayout
+                        android:id="@+id/layoutNewCardPrompt"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:background="@drawable/bg_badge_pill"
+                        android:backgroundTint="@color/status_amber_bg"
+                        android:orientation="vertical"
+                        android:padding="16dp"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <TextView
+                            android:id="@+id/tvNewCardTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/new_card_title"
+                            android:textColor="@color/status_amber"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvNewCardDesc"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="@string/new_card_desc"
+                            android:textColor="@color/text_black"
+                            android:textSize="13sp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnAssignAudioForCard"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:backgroundTint="@color/primary_accent"
+                            android:text="@string/btn_assign_audio"
+                            android:textColor="@color/on_primary"
+                            app:cornerRadius="12dp"
+                            app:icon="@drawable/ic_music"
+                            app:iconTint="@color/on_primary" />
+                    </LinearLayout>
+
+                    <!-- Prompt when recognized device/card is tapped -->
+                    <LinearLayout
+                        android:id="@+id/layoutCardLinked"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:background="@drawable/bg_badge_pill"
+                        android:backgroundTint="@color/status_green_bg"
+                        android:orientation="vertical"
+                        android:padding="16dp"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <TextView
+                            android:id="@+id/tvLinkedCardTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Device Recognized"
+                            android:textColor="@color/status_green"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvLinkedAudioName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:textColor="@color/text_black"
+                            android:textSize="13sp"
+                            tools:text="Playing: song.mp3" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnChangeCardAudio"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/btn_change_card_audio"
+                            android:textColor="@color/primary_accent"
+                            android:textSize="12sp"
+                            app:cornerRadius="10dp"
+                            app:strokeColor="@color/primary_accent" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card 3: Mobile Phone NFC Enable / Disable Switch -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardPhoneNfc"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
+                android:layout_marginBottom="14dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="1dp"
                 app:strokeColor="@color/card_stroke"
                 app:strokeWidth="1dp">
 
@@ -116,6 +238,13 @@
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:layout_marginEnd="10dp"
+                            android:contentDescription="@string/phone_nfc_title"
+                            android:src="@drawable/ic_smartphone" />
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -127,7 +256,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/phone_nfc_title"
-                                android:textColor="@color/on_surface"
+                                android:textColor="@color/text_black"
                                 android:textSize="15sp"
                                 android:textStyle="bold" />
 
@@ -136,7 +265,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
                                 android:text="@string/phone_nfc_desc"
-                                android:textColor="@color/on_surface_variant"
+                                android:textColor="@color/text_muted"
                                 android:textSize="12sp" />
                         </LinearLayout>
 
@@ -144,7 +273,9 @@
                             android:id="@+id/switchPhoneNfc"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:checked="true" />
+                            android:checked="true"
+                            app:thumbTint="@color/on_primary"
+                            app:trackTint="@color/primary_accent" />
                     </LinearLayout>
 
                     <!-- Paired Phone Audio Track Info & Button -->
@@ -153,16 +284,19 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:background="@color/background"
-                        android:orientation="vertical"
-                        android:padding="12dp">
+                        android:background="@drawable/bg_radar_circle"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="10dp">
 
                         <TextView
                             android:id="@+id/tvPhoneAudioTrack"
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="1"
                             android:text="@string/phone_nfc_track_none"
-                            android:textColor="@color/on_surface"
+                            android:textColor="@color/text_black"
                             android:textSize="13sp"
                             android:textStyle="bold" />
 
@@ -171,150 +305,23 @@
                             style="@style/Widget.Material3.Button.TonalButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
+                            android:backgroundTint="@color/primary_light"
                             android:text="@string/btn_set_phone_audio"
+                            android:textColor="@color/primary"
                             android:textSize="12sp"
-                            app:icon="@drawable/ic_music" />
+                            app:cornerRadius="10dp" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Card 3: Detection Status -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardDetectionStatus"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:strokeColor="@color/card_stroke"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:orientation="vertical"
-                    android:padding="20dp">
-
-                    <ImageView
-                        android:id="@+id/imgCardIcon"
-                        android:layout_width="64dp"
-                        android:layout_height="64dp"
-                        android:layout_marginBottom="12dp"
-                        android:contentDescription="@string/detection_status_title"
-                        android:src="@drawable/ic_card" />
-
-                    <TextView
-                        android:id="@+id/tvDetectionStatus"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:text="@string/detection_waiting"
-                        android:textColor="@color/on_surface"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvDetectionPrompt"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:gravity="center"
-                        android:text="@string/detection_prompt_hint"
-                        android:textColor="@color/on_surface_variant"
-                        android:textSize="13sp" />
-
-                    <!-- Prompt when a new card is detected with NO audio assigned -->
-                    <LinearLayout
-                        android:id="@+id/layoutNewCardPrompt"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:background="@color/status_amber_bg"
-                        android:orientation="vertical"
-                        android:padding="14dp"
-                        android:visibility="gone"
-                        tools:visibility="visible">
-
-                        <TextView
-                            android:id="@+id/tvNewCardTitle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/new_card_title"
-                            android:textColor="@color/status_amber"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvNewCardDesc"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="@string/new_card_desc"
-                            android:textColor="@color/on_surface"
-                            android:textSize="13sp" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnAssignAudioForCard"
-                            style="@style/Widget.Material3.Button"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:text="@string/btn_assign_audio"
-                            app:icon="@drawable/ic_music" />
-                    </LinearLayout>
-
-                    <!-- Prompt when recognized device/card is tapped -->
-                    <LinearLayout
-                        android:id="@+id/layoutCardLinked"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:background="@color/status_green_bg"
-                        android:orientation="vertical"
-                        android:padding="14dp"
-                        android:visibility="gone"
-                        tools:visibility="visible">
-
-                        <TextView
-                            android:id="@+id/tvLinkedCardTitle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Device Recognized"
-                            android:textColor="@color/status_green"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvLinkedAudioName"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:textColor="@color/on_surface"
-                            android:textSize="13sp"
-                            tools:text="Playing: song.mp3" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnChangeCardAudio"
-                            style="@style/Widget.Material3.Button.OutlinedButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="@string/btn_change_card_audio"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Card 4: Audio Playback Controls -->
+            <!-- Card 4: Audio Controls (Clean: No card_chime.wav text) -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardAudioStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
+                android:layout_marginBottom="14dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="1dp"
                 app:strokeColor="@color/card_stroke"
                 app:strokeWidth="1dp">
 
@@ -324,67 +331,52 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/audio_status_title"
-                        android:textColor="@color/on_surface_variant"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                    <TextView
-                        android:id="@+id/tvAudioStatus"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="@string/audio_status_stopped"
-                        android:textColor="@color/on_surface"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_marginEnd="8dp"
+                            android:contentDescription="@string/audio_status_title"
+                            android:src="@drawable/ic_music" />
 
-                    <!-- Current Selected Audio File Indicator -->
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/audio_status_title"
+                            android:textColor="@color/text_black"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvAudioStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/audio_status_stopped"
+                            android:textColor="@color/text_muted"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+
+                    <!-- Active Sound Track Indicator (Clean label) -->
                     <TextView
                         android:id="@+id/tvCurrentTrack"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
+                        android:layout_marginTop="8dp"
                         android:text="@string/audio_current_track_default"
-                        android:textColor="@color/on_surface_variant"
+                        android:textColor="@color/text_muted"
                         android:textSize="13sp" />
 
-                    <!-- Audio Selector Buttons -->
+                    <!-- Play and Stop Buttons -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:orientation="horizontal">
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnSelectAudio"
-                            style="@style/Widget.Material3.Button.OutlinedButton"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="4dp"
-                            android:layout_weight="1"
-                            android:text="@string/btn_select_audio"
-                            android:textSize="12sp"
-                            app:icon="@drawable/ic_music" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnResetAudio"
-                            style="@style/Widget.Material3.Button.TextButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/btn_reset_audio"
-                            android:textSize="11sp"
-                            android:visibility="gone"
-                            tools:visibility="visible" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
+                        android:layout_marginTop="14dp"
                         android:orientation="horizontal">
 
                         <com.google.android.material.button.MaterialButton
@@ -393,18 +385,56 @@
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="6dp"
                             android:layout_weight="1"
+                            android:backgroundTint="@color/primary_accent"
                             android:text="@string/btn_play_audio"
-                            app:icon="@drawable/ic_play" />
+                            android:textColor="@color/on_primary"
+                            app:cornerRadius="12dp"
+                            app:icon="@drawable/ic_play"
+                            app:iconTint="@color/on_primary" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnStopAudio"
-                            style="@style/Widget.Material3.Button.TonalButton"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="6dp"
                             android:layout_weight="1"
                             android:text="@string/btn_stop_audio"
-                            app:icon="@drawable/ic_stop" />
+                            android:textColor="@color/text_black"
+                            app:cornerRadius="12dp"
+                            app:icon="@drawable/ic_stop"
+                            app:iconTint="@color/text_black"
+                            app:strokeColor="@color/card_stroke" />
+                    </LinearLayout>
+
+                    <!-- Secondary Option: Set Default Song or Reset -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSelectAudio"
+                            style="@style/Widget.Material3.Button.TextButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/btn_select_audio"
+                            android:textColor="@color/primary_accent"
+                            android:textSize="12sp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnResetAudio"
+                            style="@style/Widget.Material3.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/btn_reset_audio"
+                            android:textColor="@color/text_muted"
+                            android:textSize="12sp"
+                            android:visibility="gone"
+                            tools:visibility="visible" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

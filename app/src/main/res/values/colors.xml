@@ -1,23 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#1E88E5</color>
-    <color name="primary_variant">#1565C0</color>
-    <color name="on_primary">#FFFFFF</color>
-    
-    <color name="background">#F5F7FB</color>
-    <color name="surface">#FFFFFF</color>
-    <color name="on_surface">#1A1C1E</color>
-    <color name="on_surface_variant">#535F70</color>
-    
-    <color name="status_green">#2E7D32</color>
-    <color name="status_green_bg">#E8F5E9</color>
-    <color name="status_amber">#ED6C02</color>
-    <color name="status_amber_bg">#FFF3E0</color>
-    <color name="status_red">#D32F2F</color>
-    <color name="status_red_bg">#FFEBEE</color>
-    
-    <color name="card_stroke">#E0E4EC</color>
-    <color name="console_bg">#111827</color>
-    <color name="console_text">#10B981</color>
-    <color name="console_dim">#9CA3AF</color>
+    <!-- Sharp Blue, Black, White palette -->
+    <color name="primary">#1E40AF</color>         <!-- Deep royal blue -->
+    <color name="primary_accent">#2563EB</color>  <!-- Vibrant blue -->
+    <color name="primary_light">#DBEAFE</color>   <!-- Soft blue tint -->
+    <color name="on_primary">#FFFFFF</color>      <!-- Pure white -->
+
+    <color name="background">#F8FAFC</color>      <!-- Clean white-slate -->
+    <color name="surface">#FFFFFF</color>         <!-- Pure white card -->
+    <color name="card_stroke">#E2E8F0</color>     <!-- Subtle border -->
+
+    <color name="text_black">#0F172A</color>      <!-- Rich black text -->
+    <color name="text_muted">#64748B</color>      <!-- Subdued black/slate -->
+
+    <color name="status_green">#059669</color>
+    <color name="status_green_bg">#ECFDF5</color>
+    <color name="status_amber">#D97706</color>
+    <color name="status_amber_bg">#FFFBEB</color>
+    <color name="status_red">#DC2626</color>
 </resources>

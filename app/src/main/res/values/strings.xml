@@ -1,46 +1,39 @@
 <resources>
     <string name="app_name">NFC Player</string>
 
-    <!-- NFC Status Strings -->
-    <string name="nfc_status_title">NFC Hardware Status</string>
-    <string name="nfc_status_ready">NFC is available and enabled</string>
-    <string name="nfc_status_disabled">NFC is disabled in system settings</string>
-    <string name="nfc_status_unsupported">NFC hardware is NOT supported on this device</string>
-    <string name="btn_enable_nfc">Enable NFC in Settings</string>
+    <!-- NFC Status Strings (No clunky heading) -->
+    <string name="nfc_status_ready">NFC is Ready</string>
+    <string name="nfc_status_disabled">NFC is Turned Off</string>
+    <string name="nfc_status_unsupported">NFC is Not Supported</string>
+    <string name="btn_enable_nfc">Turn On NFC</string>
 
     <!-- Mobile Phone NFC Control Strings -->
-    <string name="phone_nfc_title">Mobile Phone NFC Playback</string>
-    <string name="phone_nfc_switch">Enable Mobile Phone NFC</string>
-    <string name="phone_nfc_desc">Allow tapping another smartphone to trigger audio playback</string>
+    <string name="phone_nfc_title">Mobile Phone NFC</string>
+    <string name="phone_nfc_desc">Trigger playback when tapping another smartphone</string>
     <string name="phone_nfc_track_none">Phone Song: None (tap to choose)</string>
-    <string name="btn_set_phone_audio">Set Phone Song</string>
-    <string name="btn_change_phone_audio">Change Phone Song</string>
+    <string name="btn_set_phone_audio">Set Song</string>
+    <string name="btn_change_phone_audio">Change Song</string>
 
     <!-- Detection Status Strings -->
-    <string name="detection_status_title">Detection Status</string>
-    <string name="detection_waiting">Waiting for card or phone…</string>
-    <string name="detection_card_detected">Compatible Device Detected!</string>
-    <string name="detection_prompt_hint">Hold your card or phone against the back of this phone</string>
-    <string name="detection_tag_details_title">Discovered Device Details:</string>
+    <string name="detection_waiting">Ready to Scan</string>
+    <string name="detection_prompt_hint">Tap a card, phone, or NFC tag to the back of this device</string>
+    <string name="detection_card_detected">Device Detected!</string>
 
-    <!-- New Card Prompt Strings -->
+    <!-- Device Prompt Strings -->
     <string name="new_card_title">New Device Detected!</string>
-    <string name="new_card_desc">No audio is associated with this device yet. Choose an audio file to link with it.</string>
-    <string name="btn_assign_audio">Choose Audio for this Device</string>
-    <string name="btn_change_card_audio">Change Audio for this Device</string>
+    <string name="new_card_desc">No audio is linked to this device yet. Choose a song to link with it.</string>
+    <string name="btn_assign_audio">Link Song to this Device</string>
+    <string name="btn_change_card_audio">Change Song</string>
 
-    <!-- Audio Controls Strings -->
-    <string name="audio_status_title">Audio Playback</string>
-    <string name="audio_status_stopped">Status: Stopped</string>
-    <string name="audio_status_playing">Status: Playing</string>
-    <string name="audio_current_track_default">Default Audio: Chime (card_chime.wav)</string>
-    <string name="btn_select_audio">Choose Default Audio</string>
-    <string name="btn_reset_audio">Reset to Default Sound</string>
-    <string name="btn_play_audio">Test Play</string>
-    <string name="btn_stop_audio">Stop Sound</string>
+    <!-- Audio Controls Strings (Clean, no card_chime.wav) -->
+    <string name="audio_status_title">Audio Controls</string>
+    <string name="audio_status_stopped">Ready</string>
+    <string name="audio_status_playing">Playing Now</string>
+    <string name="audio_current_track_default">Sound: Default</string>
+    <string name="btn_select_audio">Choose Song</string>
+    <string name="btn_reset_audio">Reset</string>
+    <string name="btn_play_audio">Play</string>
+    <string name="btn_stop_audio">Stop</string>
 
-    <!-- Feasibility & Diagnostics -->
-    <string name="diagnostic_title">Feasibility &amp; Event Log</string>
-    <string name="btn_clear_log">Clear Log</string>
     <string name="aid_description">NFC Audio Device Identifier</string>
 </resources>

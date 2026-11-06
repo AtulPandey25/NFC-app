@@ -410,7 +410,7 @@ class MainActivity : AppCompatActivity() {
 
         val customFile = File(filesDir, "custom_card_sound")
         if (isCustom && customFile.exists() && name != null) {
-            binding.tvCurrentTrack.text = "Default Audio: $name"
+            binding.tvCurrentTrack.text = "Sound: $name"
             binding.btnResetAudio.visibility = View.VISIBLE
         } else {
             binding.tvCurrentTrack.text = getString(R.string.audio_current_track_default)
