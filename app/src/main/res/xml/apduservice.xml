@@ -4,7 +4,7 @@
     android:requireDeviceUnlock="false">
     <aid-group
         android:category="other"
-        android:description="NFC Audio Device Identifier">
+        android:description="@string/aid_description">
         <aid-filter android:name="F0010203040506" />
     </aid-group>
 </host-apdu-service>

@@ -34,4 +34,5 @@
     <!-- Feasibility & Diagnostics -->
     <string name="diagnostic_title">Feasibility &amp; Event Log</string>
     <string name="btn_clear_log">Clear Log</string>
+    <string name="aid_description">NFC Audio Device Identifier</string>
 </resources>
