@@ -5,7 +5,6 @@ import android.media.MediaPlayer
 import android.net.Uri
 import android.nfc.NfcAdapter
 import android.nfc.Tag
-import android.nfc.tech.IsoDep
 import android.os.Bundle
 import android.os.SystemClock
 import android.provider.OpenableColumns
@@ -28,6 +27,9 @@ class MainActivity : AppCompatActivity() {
     private var nfcAdapter: NfcAdapter? = null
     private var mediaPlayer: MediaPlayer? = null
 
+    // Holds the currently active or pending card for audio association
+    private var currentCardInfo: CardInfo? = null
+
     // Debounce window to prevent repeated restarts while card is held near phone
     private var lastTagDetectedTime: Long = 0L
     private val debounceIntervalMs: Long = 2500L
@@ -35,7 +37,7 @@ class MainActivity : AppCompatActivity() {
     private val logDateFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
     private val logEntries = StringBuilder()
 
-    // Launcher for picking custom audio files (mp3, wav, ogg, m4a, etc.)
+    // Launcher for picking custom audio files
     private val pickAudioLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let { handleCustomAudioSelected(it) }
     }
@@ -45,13 +47,12 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Initialize NFC Adapter
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
 
         setupUI()
         updateAudioTrackDisplay()
         appendLog("App initialized.")
-        appendLog("Privacy mode active: No APDU commands, zero financial data access.")
+        appendLog("Smart Per-Card Audio matching active.")
     }
 
     override fun onResume() {
@@ -80,18 +81,28 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(Settings.ACTION_NFC_SETTINGS))
         }
 
+        // When a new card without audio is tapped, this button lets the user pick its audio
+        binding.btnAssignAudioForCard.setOnClickListener {
+            pickAudioLauncher.launch("audio/*")
+        }
+
+        binding.btnChangeCardAudio.setOnClickListener {
+            pickAudioLauncher.launch("audio/*")
+        }
+
+        // General custom audio picker (sets default/global audio)
         binding.btnSelectAudio.setOnClickListener {
-            // Open system file picker for any audio format
+            currentCardInfo = null // picking general audio
             pickAudioLauncher.launch("audio/*")
         }
 
         binding.btnResetAudio.setOnClickListener {
-            resetToDefaultAudio()
+            resetDefaultAudio()
         }
 
         binding.btnPlayAudio.setOnClickListener {
             appendLog("Manual 'Test Play' button pressed.")
-            playAudio(trigger = "Manual")
+            playCurrentConfiguredAudio(trigger = "Manual")
         }
 
         binding.btnStopAudio.setOnClickListener {
@@ -102,66 +113,6 @@ class MainActivity : AppCompatActivity() {
             logEntries.clear()
             binding.tvDiagnosticLog.text = ""
             appendLog("Log cleared.")
-        }
-    }
-
-    /**
-     * Copies selected audio from the Uri into internal app storage
-     * so it persists cleanly across app restarts.
-     */
-    private fun handleCustomAudioSelected(uri: Uri) {
-        try {
-            var fileName = "Custom Audio"
-            contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-                val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                if (nameIndex != -1 && cursor.moveToFirst()) {
-                    fileName = cursor.getString(nameIndex) ?: "Custom Audio"
-                }
-            }
-
-            val targetFile = File(filesDir, "custom_card_sound")
-            contentResolver.openInputStream(uri)?.use { input ->
-                FileOutputStream(targetFile).use { output ->
-                    input.copyTo(output)
-                }
-            }
-
-            val prefs = getSharedPreferences("nfc_prefs", MODE_PRIVATE)
-            prefs.edit()
-                .putBoolean("is_custom_audio", true)
-                .putString("custom_audio_name", fileName)
-                .apply()
-
-            updateAudioTrackDisplay()
-            appendLog("Selected custom audio: $fileName")
-        } catch (e: Exception) {
-            appendLog("Failed to set custom audio: ${e.message}")
-        }
-    }
-
-    private fun resetToDefaultAudio() {
-        val prefs = getSharedPreferences("nfc_prefs", MODE_PRIVATE)
-        prefs.edit().putBoolean("is_custom_audio", false).apply()
-        val customFile = File(filesDir, "custom_card_sound")
-        if (customFile.exists()) {
-            customFile.delete()
-        }
-        updateAudioTrackDisplay()
-        appendLog("Reset audio to default chime.")
-    }
-
-    private fun updateAudioTrackDisplay() {
-        val prefs = getSharedPreferences("nfc_prefs", MODE_PRIVATE)
-        val isCustom = prefs.getBoolean("is_custom_audio", false)
-        val name = prefs.getString("custom_audio_name", null)
-
-        val customFile = File(filesDir, "custom_card_sound")
-        if (isCustom && customFile.exists() && name != null) {
-            binding.tvCurrentTrack.text = "Audio: $name"
-            binding.btnResetAudio.visibility = View.VISIBLE
-        } else {
-            binding.tvCurrentTrack.text = getString(R.string.audio_current_track_default)
-            binding.btnResetAudio.visibility = View.GONE
         }
     }
 
@@ -188,14 +139,16 @@ class MainActivity : AppCompatActivity() {
                 binding.tvNfcStatus.text = getString(R.string.nfc_status_ready)
                 binding.tvNfcStatus.setTextColor(ContextCompat.getColor(this, R.color.status_green))
                 binding.btnEnableNfc.visibility = View.GONE
-                binding.tvDetectionStatus.text = getString(R.string.detection_waiting)
+                if (currentCardInfo == null) {
+                    binding.tvDetectionStatus.text = getString(R.string.detection_waiting)
+                }
                 appendLog("NFC Hardware ready & enabled.")
             }
         }
     }
 
     /**
-     * Enables Android Reader Mode specifically tuned for ISO-DEP contactless cards.
+     * Enables Android Reader Mode specifically tuned for contactless cards.
      */
     private fun enableNfcReaderMode() {
         val adapter = nfcAdapter ?: return
@@ -214,7 +167,7 @@ class MainActivity : AppCompatActivity() {
             handleDiscoveredTag(tag)
         }, flags, extras)
 
-        appendLog("NFC Reader Mode activated. Waiting for tag...")
+        appendLog("NFC Reader Mode activated. Waiting for card...")
     }
 
     private fun disableNfcReaderMode() {
@@ -223,97 +176,210 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Callback invoked when an NFC tag/contactless card enters the RF field.
+     * Callback invoked when an NFC tag/contactless card is presented.
      */
     private fun handleDiscoveredTag(tag: Tag) {
         val now = SystemClock.elapsedRealtime()
-
-        // Debounce: prevent rapid re-triggering while same card stays in field
         if (now - lastTagDetectedTime < debounceIntervalMs) {
             return
         }
         lastTagDetectedTime = now
 
-        // Extract technical specifications for feasibility testing
-        val techList = tag.techList.map { it.substringAfterLast('.') }
-        val isoDep = IsoDep.get(tag)
-        val supportsIsoDep = (isoDep != null) || tag.techList.contains("android.nfc.tech.IsoDep")
+        // Read card identification details (masked PAN or UID fallback)
+        val cardInfo = EmvCardReader.readCard(tag)
+        currentCardInfo = cardInfo
+
+        val prefs = getSharedPreferences("nfc_prefs", MODE_PRIVATE)
+        val savedAudioPath = prefs.getString("card_audio_path_${cardInfo.id}", null)
+        val savedAudioName = prefs.getString("card_audio_name_${cardInfo.id}", null)
+
+        val hasAssociatedAudio = savedAudioPath != null && File(savedAudioPath).exists()
 
         runOnUiThread {
-            if (supportsIsoDep) {
-                // ISO-DEP (ISO 14443-4) is the international standard used by EMV contactless cards
-                binding.tvDetectionStatus.text = getString(R.string.detection_card_detected)
-                binding.tvDetectionStatus.setTextColor(ContextCompat.getColor(this, R.color.status_green))
-                binding.layoutTagDetails.visibility = View.VISIBLE
-                binding.tvTagTechList.text = "Supported Techs: $techList\nStandard: ISO/IEC 14443-4 (EMV Compatible)"
+            binding.tvDetectionStatus.text = "Card Detected: ${cardInfo.displayName}"
+            binding.tvDetectionStatus.setTextColor(ContextCompat.getColor(this, R.color.status_green))
 
-                appendLog("TAG DETECTED: IsoDep=YES | Techs=$techList")
-                appendLog("Feasibility check PASSED: Card supports IsoDep.")
+            binding.layoutTagDetails.visibility = View.VISIBLE
+            binding.tvTagTechList.text = "Type: ${cardInfo.scheme}\nIdentifier: ${cardInfo.displayName}"
 
-                // Trigger audio playback automatically
-                playAudio(trigger = "NFC Debit Card")
+            if (hasAssociatedAudio) {
+                // Card is already recognized and has an associated audio file!
+                binding.layoutNewCardPrompt.visibility = View.GONE
+                binding.layoutCardLinked.visibility = View.VISIBLE
+                binding.tvLinkedCardTitle.text = "Recognized: ${cardInfo.displayName}"
+                binding.tvLinkedAudioName.text = "Associated Audio: $savedAudioName"
+
+                appendLog("CARD RECOGNIZED: ${cardInfo.displayName}")
+                appendLog("Playing mapped audio: $savedAudioName")
+
+                playFile(File(savedAudioPath!!), savedAudioName ?: "Card Audio", cardInfo.displayName)
             } else {
-                // Non-ISO-DEP tag (e.g. simple NFC sticker, MIFARE Classic, etc.)
-                binding.tvDetectionStatus.text = "NFC Tag Detected (Non-IsoDep)"
-                binding.tvDetectionStatus.setTextColor(ContextCompat.getColor(this, R.color.status_amber))
-                binding.layoutTagDetails.visibility = View.VISIBLE
-                binding.tvTagTechList.text = "Supported Techs: $techList\nNote: Standard EMV debit cards use IsoDep."
+                // First time this card is detected (or no audio linked yet)
+                binding.layoutCardLinked.visibility = View.GONE
+                binding.layoutNewCardPrompt.visibility = View.VISIBLE
+                binding.tvNewCardTitle.text = "New Card: ${cardInfo.displayName}"
+                binding.tvNewCardDesc.text = "No audio is associated with this card yet. Select an audio file to link with this card."
 
-                appendLog("TAG DETECTED: IsoDep=NO | Techs=$techList")
-                appendLog("Tag detected, but not an IsoDep payment card.")
+                appendLog("NEW CARD DETECTED: ${cardInfo.displayName}")
+                appendLog("Prompting user to choose audio for this card...")
             }
         }
     }
 
     /**
-     * Plays either the custom chosen audio file or the default chime.
+     * Handles audio selected from the file picker.
      */
-    private fun playAudio(trigger: String) {
+    private fun handleCustomAudioSelected(uri: Uri) {
+        try {
+            var fileName = "Custom Audio"
+            contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (nameIndex != -1 && cursor.moveToFirst()) {
+                    fileName = cursor.getString(nameIndex) ?: "Custom Audio"
+                }
+            }
+
+            val card = currentCardInfo
+            val prefs = getSharedPreferences("nfc_prefs", MODE_PRIVATE)
+
+            if (card != null) {
+                // Linking audio to a specific card!
+                val targetFile = File(filesDir, "card_audio_${card.id}")
+                contentResolver.openInputStream(uri)?.use { input ->
+                    FileOutputStream(targetFile).use { output ->
+                        input.copyTo(output)
+                    }
+                }
+
+                prefs.edit()
+                    .putString("card_audio_path_${card.id}", targetFile.absolutePath)
+                    .putString("card_audio_name_${card.id}", fileName)
+                    .putString("card_display_name_${card.id}", card.displayName)
+                    .apply()
+
+                binding.layoutNewCardPrompt.visibility = View.GONE
+                binding.layoutCardLinked.visibility = View.VISIBLE
+                binding.tvLinkedCardTitle.text = "Linked: ${card.displayName}"
+                binding.tvLinkedAudioName.text = "Associated Audio: $fileName"
+
+                appendLog("SUCCESS: Linked '$fileName' to ${card.displayName}!")
+                appendLog("Next time this card is tapped, it will play '$fileName' automatically.")
+
+                // Play the newly selected audio immediately
+                playFile(targetFile, fileName, card.displayName)
+            } else {
+                // General default audio setting
+                val targetFile = File(filesDir, "custom_card_sound")
+                contentResolver.openInputStream(uri)?.use { input ->
+                    FileOutputStream(targetFile).use { output ->
+                        input.copyTo(output)
+                    }
+                }
+
+                prefs.edit()
+                    .putBoolean("is_custom_audio", true)
+                    .putString("custom_audio_name", fileName)
+                    .apply()
+
+                updateAudioTrackDisplay()
+                appendLog("Default audio updated to: $fileName")
+                playFile(targetFile, fileName, "Default Trigger")
+            }
+        } catch (e: Exception) {
+            appendLog("Error setting audio: ${e.message}")
+        }
+    }
+
+    private fun resetDefaultAudio() {
+        val prefs = getSharedPreferences("nfc_prefs", MODE_PRIVATE)
+        prefs.edit().putBoolean("is_custom_audio", false).apply()
+        val customFile = File(filesDir, "custom_card_sound")
+        if (customFile.exists()) {
+            customFile.delete()
+        }
+        updateAudioTrackDisplay()
+        appendLog("Reset default audio to chime.")
+    }
+
+    private fun updateAudioTrackDisplay() {
+        val prefs = getSharedPreferences("nfc_prefs", MODE_PRIVATE)
+        val isCustom = prefs.getBoolean("is_custom_audio", false)
+        val name = prefs.getString("custom_audio_name", null)
+
+        val customFile = File(filesDir, "custom_card_sound")
+        if (isCustom && customFile.exists() && name != null) {
+            binding.tvCurrentTrack.text = "Default Audio: $name"
+            binding.btnResetAudio.visibility = View.VISIBLE
+        } else {
+            binding.tvCurrentTrack.text = getString(R.string.audio_current_track_default)
+            binding.btnResetAudio.visibility = View.GONE
+        }
+    }
+
+    private fun playFile(file: File, trackName: String, triggerSource: String) {
         try {
             mediaPlayer?.let {
-                if (it.isPlaying) {
-                    it.stop()
-                }
+                if (it.isPlaying) it.stop()
                 it.release()
             }
 
-            val prefs = getSharedPreferences("nfc_prefs", MODE_PRIVATE)
-            val isCustom = prefs.getBoolean("is_custom_audio", false)
-            val customFile = File(filesDir, "custom_card_sound")
-
-            mediaPlayer = if (isCustom && customFile.exists()) {
-                MediaPlayer().apply {
-                    setDataSource(customFile.absolutePath)
-                    prepare()
-                }
-            } else {
-                MediaPlayer.create(this, R.raw.card_chime)
-            }
-
-            val trackName = if (isCustom && customFile.exists()) {
-                prefs.getString("custom_audio_name", "Custom Audio") ?: "Custom Audio"
-            } else {
-                "Default Chime"
-            }
-
-            mediaPlayer?.apply {
+            mediaPlayer = MediaPlayer().apply {
+                setDataSource(file.absolutePath)
+                prepare()
                 setOnCompletionListener {
                     binding.tvAudioStatus.text = getString(R.string.audio_status_stopped)
-                    appendLog("Audio playback completed.")
+                    appendLog("Playback finished ($trackName).")
                 }
                 start()
             }
 
             binding.tvAudioStatus.text = "Status: Playing ($trackName)"
-            appendLog("Playing audio: $trackName ($trigger trigger)...")
+            appendLog("Playing audio: $trackName ($triggerSource)...")
         } catch (e: Exception) {
-            appendLog("Audio Error: ${e.message}")
+            appendLog("Audio Playback Error: ${e.message}")
         }
     }
 
-    /**
-     * Stops current audio playback.
-     */
+    private fun playCurrentConfiguredAudio(trigger: String) {
+        val card = currentCardInfo
+        val prefs = getSharedPreferences("nfc_prefs", MODE_PRIVATE)
+
+        if (card != null) {
+            val savedPath = prefs.getString("card_audio_path_${card.id}", null)
+            val savedName = prefs.getString("card_audio_name_${card.id}", null)
+            if (savedPath != null && File(savedPath).exists()) {
+                playFile(File(savedPath), savedName ?: "Card Audio", trigger)
+                return
+            }
+        }
+
+        val isCustom = prefs.getBoolean("is_custom_audio", false)
+        val customFile = File(filesDir, "custom_card_sound")
+        val customName = prefs.getString("custom_audio_name", "Custom Audio")
+
+        if (isCustom && customFile.exists()) {
+            playFile(customFile, customName ?: "Custom Audio", trigger)
+        } else {
+            try {
+                mediaPlayer?.let {
+                    if (it.isPlaying) it.stop()
+                    it.release()
+                }
+                mediaPlayer = MediaPlayer.create(this, R.raw.card_chime).apply {
+                    setOnCompletionListener {
+                        binding.tvAudioStatus.text = getString(R.string.audio_status_stopped)
+                        appendLog("Chime completed.")
+                    }
+                    start()
+                }
+                binding.tvAudioStatus.text = "Status: Playing (Default Chime)"
+                appendLog("Playing Default Chime ($trigger)...")
+            } catch (e: Exception) {
+                appendLog("Audio Error: ${e.message}")
+            }
+        }
+    }
+
     private fun stopAudio() {
         mediaPlayer?.let {
             if (it.isPlaying) {
@@ -329,9 +395,6 @@ class MainActivity : AppCompatActivity() {
         mediaPlayer = null
     }
 
-    /**
-     * Appends a timestamped log entry to the UI Diagnostic Console.
-     */
     private fun appendLog(message: String) {
         val timestamp = logDateFormat.format(Date())
         val entry = "[$timestamp] $message\n"

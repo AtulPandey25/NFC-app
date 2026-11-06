@@ -140,13 +140,93 @@
                         android:textColor="@color/on_surface_variant"
                         android:textSize="13sp" />
 
+                    <!-- Prompt when a card is detected with NO audio assigned -->
+                    <LinearLayout
+                        android:id="@+id/layoutNewCardPrompt"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:background="@color/status_amber_bg"
+                        android:orientation="vertical"
+                        android:padding="14dp"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <TextView
+                            android:id="@+id/tvNewCardTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/new_card_title"
+                            android:textColor="@color/status_amber"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvNewCardDesc"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="@string/new_card_desc"
+                            android:textColor="@color/on_surface"
+                            android:textSize="13sp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnAssignAudioForCard"
+                            style="@style/Widget.Material3.Button"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:text="@string/btn_assign_audio"
+                            app:icon="@drawable/ic_music" />
+                    </LinearLayout>
+
+                    <!-- Prompt when a card is recognized with associated audio -->
+                    <LinearLayout
+                        android:id="@+id/layoutCardLinked"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:background="@color/status_green_bg"
+                        android:orientation="vertical"
+                        android:padding="14dp"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <TextView
+                            android:id="@+id/tvLinkedCardTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Card Recognized"
+                            android:textColor="@color/status_green"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvLinkedAudioName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:textColor="@color/on_surface"
+                            android:textSize="13sp"
+                            tools:text="Playing: my_favorite_song.mp3" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnChangeCardAudio"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/btn_change_card_audio"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
                     <!-- Technical Tag Details badge -->
                     <LinearLayout
                         android:id="@+id/layoutTagDetails"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:background="@color/status_green_bg"
+                        android:background="@color/card_stroke"
                         android:orientation="vertical"
                         android:padding="12dp"
                         android:visibility="gone"
@@ -157,7 +237,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/detection_tag_details_title"
-                            android:textColor="@color/status_green"
+                            android:textColor="@color/on_surface_variant"
                             android:textSize="12sp"
                             android:textStyle="bold" />
 
@@ -166,9 +246,9 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:textColor="@color/status_green"
-                            android:textSize="13sp"
-                            tools:text="Supported Techs: [IsoDep, NfcA]\nEMV Contactless standard confirmed." />
+                            android:textColor="@color/on_surface"
+                            android:textSize="12sp"
+                            tools:text="Scheme: Visa (•••• 1234)\nStandard: ISO/IEC 14443-4" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -325,15 +405,7 @@
                         android:padding="12dp"
                         android:textColor="@color/console_text"
                         android:textSize="11sp"
-                        tools:text="[14:40:00] App started\n[14:40:01] NFC Reader Mode active\n[14:40:05] Tag discovered: IsoDep, NfcA\n[14:40:05] IsoDep supported: TRUE -> Playing audio" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Privacy Guarantee: Zero APDU commands sent. Zero card numbers or CVVs read. Offline only."
-                        android:textColor="@color/on_surface_variant"
-                        android:textSize="11sp" />
+                        tools:text="[14:40:00] App started" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

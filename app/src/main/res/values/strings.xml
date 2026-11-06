@@ -10,10 +10,16 @@
 
     <!-- Detection Status Strings -->
     <string name="detection_status_title">Card Detection Status</string>
-    <string name="detection_waiting">Waiting for contactless debit card…</string>
+    <string name="detection_waiting">Waiting for contactless card…</string>
     <string name="detection_card_detected">Compatible Card Detected!</string>
     <string name="detection_prompt_hint">Hold your contactless debit card against the back of your phone</string>
-    <string name="detection_tag_details_title">Discovered Tag Details:</string>
+    <string name="detection_tag_details_title">Discovered Card Details:</string>
+
+    <!-- New Card Prompt Strings -->
+    <string name="new_card_title">New Card Detected!</string>
+    <string name="new_card_desc">No audio is associated with this card yet. Choose an audio file to link with it.</string>
+    <string name="btn_assign_audio">Choose Audio for this Card</string>
+    <string name="btn_change_card_audio">Change Audio for this Card</string>
 
     <!-- Audio Controls Strings -->
     <string name="audio_status_title">Audio Playback</string>
