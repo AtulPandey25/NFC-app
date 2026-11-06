@@ -1,39 +1,29 @@
 <resources>
     <string name="app_name">NFC Player</string>
 
-    <!-- NFC Status Strings (No clunky heading) -->
+    <!-- NFC Status Strings -->
     <string name="nfc_status_ready">NFC is Ready</string>
     <string name="nfc_status_disabled">NFC is Turned Off</string>
     <string name="nfc_status_unsupported">NFC is Not Supported</string>
     <string name="btn_enable_nfc">Turn On NFC</string>
 
-    <!-- Mobile Phone NFC Control Strings -->
-    <string name="phone_nfc_title">Mobile Phone NFC</string>
-    <string name="phone_nfc_desc">Trigger playback when tapping another smartphone</string>
-    <string name="phone_nfc_track_none">Phone Song: None (tap to choose)</string>
-    <string name="btn_set_phone_audio">Set Song</string>
-    <string name="btn_change_phone_audio">Change Song</string>
-
     <!-- Detection Status Strings -->
     <string name="detection_waiting">Ready to Scan</string>
-    <string name="detection_prompt_hint">Tap a card, phone, or NFC tag to the back of this device</string>
-    <string name="detection_card_detected">Device Detected!</string>
+    <string name="detection_prompt_hint">Tap your contactless debit card to the back of this phone</string>
 
-    <!-- Device Prompt Strings -->
-    <string name="new_card_title">New Device Detected!</string>
-    <string name="new_card_desc">No audio is linked to this device yet. Choose a song to link with it.</string>
-    <string name="btn_assign_audio">Link Song to this Device</string>
-    <string name="btn_change_card_audio">Change Song</string>
+    <!-- Card Prompt Strings -->
+    <string name="new_card_title">New Card Detected!</string>
+    <string name="new_card_desc">No audio is linked to this card yet. Choose a song to link with it.</string>
+    <string name="btn_assign_audio">Link Song to this Card</string>
+    <string name="btn_change_card_audio">Change Card Song</string>
 
-    <!-- Audio Controls Strings (Clean, no card_chime.wav) -->
+    <!-- Audio Controls Strings -->
     <string name="audio_status_title">Audio Controls</string>
     <string name="audio_status_stopped">Ready</string>
     <string name="audio_status_playing">Playing Now</string>
     <string name="audio_current_track_default">Sound: Default</string>
-    <string name="btn_select_audio">Choose Song</string>
+    <string name="btn_select_audio">Choose Default Song</string>
     <string name="btn_reset_audio">Reset</string>
     <string name="btn_play_audio">Play</string>
     <string name="btn_stop_audio">Stop</string>
-
-    <string name="aid_description">NFC Audio Device Identifier</string>
 </resources>

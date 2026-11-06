@@ -31,7 +31,7 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- NFC Hardware Status Indicator (Clean, No heading) -->
+            <!-- NFC Hardware Status Indicator -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardNfcStatus"
                 android:layout_width="match_parent"
@@ -80,7 +80,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Hero Tap Card: Clean Blue, Black & White with Graphic Illustration -->
+            <!-- Hero Tap Card: Blue, Black & White with Graphic Illustration -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardDetectionStatus"
                 android:layout_width="match_parent"
@@ -126,7 +126,7 @@
                         android:textColor="@color/text_muted"
                         android:textSize="13sp" />
 
-                    <!-- Prompt when a new card/device is detected with NO audio assigned -->
+                    <!-- Prompt when a new debit card is detected with NO audio assigned -->
                     <LinearLayout
                         android:id="@+id/layoutNewCardPrompt"
                         android:layout_width="match_parent"
@@ -169,7 +169,7 @@
                             app:iconTint="@color/on_primary" />
                     </LinearLayout>
 
-                    <!-- Prompt when recognized device/card is tapped -->
+                    <!-- Prompt when recognized debit card is tapped -->
                     <LinearLayout
                         android:id="@+id/layoutCardLinked"
                         android:layout_width="match_parent"
@@ -185,7 +185,7 @@
                             android:id="@+id/tvLinkedCardTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Device Recognized"
+                            android:text="Card Recognized"
                             android:textColor="@color/status_green"
                             android:textSize="15sp"
                             android:textStyle="bold" />
@@ -214,105 +214,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Card 3: Mobile Phone NFC Enable / Disable Switch -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardPhoneNfc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="14dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="1dp"
-                app:strokeColor="@color/card_stroke"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:layout_marginEnd="10dp"
-                            android:contentDescription="@string/phone_nfc_title"
-                            android:src="@drawable/ic_smartphone" />
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/phone_nfc_title"
-                                android:textColor="@color/text_black"
-                                android:textSize="15sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="@string/phone_nfc_desc"
-                                android:textColor="@color/text_muted"
-                                android:textSize="12sp" />
-                        </LinearLayout>
-
-                        <com.google.android.material.materialswitch.MaterialSwitch
-                            android:id="@+id/switchPhoneNfc"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checked="true"
-                            app:thumbTint="@color/on_primary"
-                            app:trackTint="@color/primary_accent" />
-                    </LinearLayout>
-
-                    <!-- Paired Phone Audio Track Info & Button -->
-                    <LinearLayout
-                        android:id="@+id/layoutPhoneAudioInfo"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:background="@drawable/bg_card_subtle"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="14dp"
-                        android:paddingVertical="10dp">
-
-                        <TextView
-                            android:id="@+id/tvPhoneAudioTrack"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:layout_weight="1"
-                            android:text="@string/phone_nfc_track_none"
-                            android:textColor="@color/text_black"
-                            android:textSize="13sp"
-                            android:textStyle="bold" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnSetPhoneAudio"
-                            style="@style/Widget.Material3.Button.TonalButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:backgroundTint="@color/primary_light"
-                            android:text="@string/btn_set_phone_audio"
-                            android:textColor="@color/primary"
-                            android:textSize="12sp"
-                            app:cornerRadius="10dp" />
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Card 4: Audio Controls (Clean: No card_chime.wav text) -->
+            <!-- Card 3: Audio Controls -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardAudioStatus"
                 android:layout_width="match_parent"
@@ -360,7 +262,7 @@
                             android:textSize="13sp" />
                     </LinearLayout>
 
-                    <!-- Active Sound Track Indicator (Clean label) -->
+                    <!-- Active Sound Track Indicator -->
                     <TextView
                         android:id="@+id/tvCurrentTrack"
                         android:layout_width="wrap_content"

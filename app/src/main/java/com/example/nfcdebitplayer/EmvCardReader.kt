@@ -6,54 +6,43 @@ import java.security.MessageDigest
 
 data class CardInfo(
     val id: String,           // Unique key for mapping
-    val displayName: String,  // User-facing name (e.g. "Visa •••• 1234" or "Mobile Phone")
-    val scheme: String,       // "Visa", "Mastercard", "RuPay", "Mobile Phone", etc.
-    val isEmv: Boolean        // TRUE = Debit/Credit Card with card number, FALSE = Phone
+    val displayName: String,  // User-facing name (e.g. "Visa •••• 1234")
+    val scheme: String,       // "Visa", "Mastercard", "RuPay", etc.
+    val isEmv: Boolean
 )
 
 object EmvCardReader {
 
     private val PPSE = "2PAY.SYS.DDF01".toByteArray(Charsets.US_ASCII)
 
-    // Comprehensive list of global and domestic payment network AIDs
     private val KNOWN_AIDS = listOf(
-        byteArrayOf(0xA0.toByte(), 0x00, 0x00, 0x00, 0x03, 0x10, 0x10), // Visa Credit/Debit
+        byteArrayOf(0xA0.toByte(), 0x00, 0x00, 0x00, 0x03, 0x10, 0x10), // Visa
         byteArrayOf(0xA0.toByte(), 0x00, 0x00, 0x00, 0x03, 0x20, 0x10), // Visa Electron
-        byteArrayOf(0xA0.toByte(), 0x00, 0x00, 0x00, 0x03, 0x30, 0x10), // Visa Interlink
         byteArrayOf(0xA0.toByte(), 0x00, 0x00, 0x00, 0x04, 0x10, 0x10), // Mastercard
         byteArrayOf(0xA0.toByte(), 0x00, 0x00, 0x00, 0x04, 0x30, 0x60), // Maestro
-        byteArrayOf(0xA0.toByte(), 0x00, 0x00, 0x00, 0x05, 0x00, 0x01), // Maestro UK
         byteArrayOf(0xA0.toByte(), 0x00, 0x00, 0x05, 0x24, 0x10, 0x10), // RuPay Debit
         byteArrayOf(0xA0.toByte(), 0x00, 0x00, 0x05, 0x24, 0x10, 0x20), // RuPay Credit
-        byteArrayOf(0xA0.toByte(), 0x00, 0x00, 0x05, 0x24, 0x10, 0x30), // RuPay Prepaid
-        byteArrayOf(0xA0.toByte(), 0x00, 0x00, 0x00, 0x25, 0x01),       // American Express
-        byteArrayOf(0xA0.toByte(), 0x00, 0x00, 0x00, 0x25, 0x01, 0x04), // Amex ExpressPay
-        byteArrayOf(0xA0.toByte(), 0x00, 0x00, 0x01, 0x52, 0x30, 0x10), // Discover
-        byteArrayOf(0xA0.toByte(), 0x00, 0x00, 0x03, 0x33, 0x01, 0x01), // UnionPay
-        byteArrayOf(0xA0.toByte(), 0x00, 0x00, 0x00, 0x65, 0x10, 0x10)  // JCB
+        byteArrayOf(0xA0.toByte(), 0x00, 0x00, 0x00, 0x25, 0x01, 0x04)  // Amex
     )
 
     /**
-     * Reads card or phone interaction.
-     * Rule:
-     * - If the device returns a debit/credit card number (PAN), it is classified as a CARD.
-     * - If no card number is found (smartphones, other NFC phones), it is classified as a PHONE.
+     * Fast, lightweight contactless debit card reader.
      */
     fun readCard(tag: Tag): CardInfo {
         val isoDep = IsoDep.get(tag)
+        val uidHex = tag.id.joinToString("") { "%02X".format(it) }
 
         if (isoDep == null) {
-            // Not an ISO-DEP tag -> phone or generic tag
             return CardInfo(
-                id = "PHONE_PAIRED_DEVICE",
-                displayName = "Mobile Phone",
-                scheme = "Mobile Phone",
+                id = uidHex,
+                displayName = "Card ($uidHex)",
+                scheme = "Card",
                 isEmv = false
             )
         }
 
         try {
-            isoDep.timeout = 2500
+            isoDep.timeout = 1000 // Fast 1-second timeout
             isoDep.connect()
 
             var pan: String? = null
@@ -67,22 +56,18 @@ object EmvCardReader {
             if (isSuccess(ppseResp)) {
                 aids.addAll(extractAids(ppseResp))
             }
-            // Always append known payment AIDs as fallback
-            for (known in KNOWN_AIDS) {
-                if (aids.none { it.contentEquals(known) }) {
-                    aids.add(known)
-                }
+            if (aids.isEmpty()) {
+                aids.addAll(KNOWN_AIDS)
             }
 
-            // 2. Query each AID for card number
+            // 2. Select AID and read PAN
             for (aid in aids) {
+                scheme = detectScheme(aid)
                 val selectAidApdu = createSelectApdu(aid)
                 val aidResp = isoDep.transceive(selectAidApdu)
 
                 if (!isSuccess(aidResp)) continue
-                scheme = detectScheme(aid)
 
-                // Try GPO (Get Processing Options)
                 val pdol = extractPdol(aidResp)
                 val gpoApdu = createGpoApdu(pdol)
                 val gpoResp = isoDep.transceive(gpoApdu)
@@ -91,7 +76,6 @@ object EmvCardReader {
                     pan = extractPanFromTlv(gpoResp)
                     if (pan != null) break
 
-                    // Extract AFL and read records
                     val afl = extractAfl(gpoResp)
                     for ((sfi, record) in afl) {
                         val readApdu = byteArrayOf(
@@ -109,33 +93,10 @@ object EmvCardReader {
                     }
                     if (pan != null) break
                 }
-
-                // If GPO failed or didn't return PAN, try direct record reads on standard SFIs
-                val directSfis = listOf(1, 2, 3)
-                for (sfi in directSfis) {
-                    for (rec in 1..4) {
-                        val directReadApdu = byteArrayOf(
-                            0x00.toByte(),
-                            0xB2.toByte(),
-                            rec.toByte(),
-                            ((sfi shl 3) or 4).toByte(),
-                            0x00.toByte()
-                        )
-                        val directResp = try { isoDep.transceive(directReadApdu) } catch (_: Exception) { null }
-                        if (isSuccess(directResp)) {
-                            pan = extractPanFromTlv(directResp!!)
-                            if (pan != null) break
-                        }
-                    }
-                    if (pan != null) break
-                }
-
-                if (pan != null) break
             }
 
             isoDep.close()
 
-            // If a valid card number was retrieved -> CARD
             if (pan != null) {
                 val cleanPan = pan.replace("[^0-9]".toRegex(), "")
                 val last4 = if (cleanPan.length >= 4) cleanPan.takeLast(4) else cleanPan
@@ -157,12 +118,12 @@ object EmvCardReader {
             try { isoDep.close() } catch (_: Exception) {}
         }
 
-        // If no card number was retrieved, it is classified as a MOBILE PHONE
+        // Fallback to card UID if EMV read was not allowed
         return CardInfo(
-            id = "PHONE_PAIRED_DEVICE",
-            displayName = "Mobile Phone",
-            scheme = "Mobile Phone",
-            isEmv = false
+            id = uidHex,
+            displayName = "Card ($uidHex)",
+            scheme = "Contactless Card",
+            isEmv = true
         )
     }
 
@@ -304,13 +265,10 @@ object EmvCardReader {
         val hex = aid.joinToString("") { "%02X".format(it) }
         return when {
             hex.startsWith("A000000003") -> "Visa"
-            hex.startsWith("A000000004") || hex.startsWith("A000000005") -> "Mastercard"
+            hex.startsWith("A000000004") -> "Mastercard"
             hex.startsWith("A000000524") -> "RuPay"
             hex.startsWith("A000000025") -> "American Express"
-            hex.startsWith("A000000152") -> "Discover"
-            hex.startsWith("A000000333") -> "UnionPay"
-            hex.startsWith("A000000065") -> "JCB"
-            else -> "Debit Card"
+            else -> "Card"
         }
     }
 
