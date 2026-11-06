@@ -2,6 +2,7 @@
 <resources>
     <!-- Sharp Blue, Black, White palette -->
     <color name="primary">#1E40AF</color>         <!-- Deep royal blue -->
+    <color name="primary_variant">#1E3A8A</color> <!-- Darker royal blue for status bar -->
     <color name="primary_accent">#2563EB</color>  <!-- Vibrant blue -->
     <color name="primary_light">#DBEAFE</color>   <!-- Soft blue tint -->
     <color name="on_primary">#FFFFFF</color>      <!-- Pure white -->
