@@ -244,73 +244,71 @@ class MainActivity : AppCompatActivity() {
         currentCardInfo = cardInfo
         val prefs = getSharedPreferences("nfc_prefs", MODE_PRIVATE)
 
-        // 1. Check if detected device is a Mobile Phone
-        val isPhone = !cardInfo.isEmv || cardInfo.scheme.contains("Phone", ignoreCase = true)
+        // MECHANISM 1: DEBIT / CREDIT CARDS (100% separate from phones)
+        if (cardInfo.isEmv) {
+            val savedAudioPath = prefs.getString("card_audio_path_${cardInfo.id}", null)
+            val savedAudioName = prefs.getString("card_audio_name_${cardInfo.id}", null)
+            val hasAssociatedAudio = savedAudioPath != null && File(savedAudioPath).exists()
 
-        if (isPhone) {
-            val isPhoneEnabled = prefs.getBoolean("phone_nfc_enabled", true)
-            if (!isPhoneEnabled) {
-                runOnUiThread {
-                    binding.tvDetectionStatus.text = "Phone Detected (Disabled in Settings)"
-                    binding.tvDetectionStatus.setTextColor(ContextCompat.getColor(this, R.color.status_amber))
-                }
-                return
-            }
+            isPickingForPhone = false
+            runOnUiThread {
+                binding.tvDetectionStatus.text = "Card Detected: ${cardInfo.displayName}"
+                binding.tvDetectionStatus.setTextColor(ContextCompat.getColor(this, R.color.status_green))
 
-            // Mobile Phone NFC is enabled: check paired phone song
-            val phoneAudioPath = prefs.getString("phone_paired_audio_path", null)
-            val phoneAudioName = prefs.getString("phone_paired_audio_name", null)
-
-            if (phoneAudioPath != null && File(phoneAudioPath).exists()) {
-                // Already paired: Play immediately! Never asks again.
-                runOnUiThread {
-                    binding.tvDetectionStatus.text = "Mobile Phone Detected!"
-                    binding.tvDetectionStatus.setTextColor(ContextCompat.getColor(this, R.color.status_green))
+                if (hasAssociatedAudio) {
                     binding.layoutNewCardPrompt.visibility = View.GONE
                     binding.layoutCardLinked.visibility = View.VISIBLE
-                    binding.tvLinkedCardTitle.text = "Recognized: Mobile Phone"
-                    binding.tvLinkedAudioName.text = "Playing: $phoneAudioName"
-                }
-                playFile(File(phoneAudioPath), phoneAudioName ?: "Phone Song", "Mobile Phone")
-            } else {
-                // First time: prompt user to pick the phone's song
-                isPickingForPhone = true
-                runOnUiThread {
-                    binding.tvDetectionStatus.text = "Mobile Phone Detected!"
-                    binding.tvDetectionStatus.setTextColor(ContextCompat.getColor(this, R.color.status_amber))
+                    binding.tvLinkedCardTitle.text = "Card Recognized"
+                    binding.tvLinkedAudioName.text = "Playing: $savedAudioName"
+
+                    playFile(File(savedAudioPath!!), savedAudioName ?: "Card Audio", cardInfo.displayName)
+                } else {
                     binding.layoutCardLinked.visibility = View.GONE
                     binding.layoutNewCardPrompt.visibility = View.VISIBLE
-                    binding.tvNewCardTitle.text = "New Phone Detected!"
-                    binding.tvNewCardDesc.text = "Select the audio file you want mobile phones to play."
-                    binding.btnAssignAudioForCard.text = "Choose Audio for Mobile Phone"
+                    binding.tvNewCardTitle.text = "New Card: ${cardInfo.displayName}"
+                    binding.tvNewCardDesc.text = "No audio is associated with this card yet. Choose a song to link with it."
+                    binding.btnAssignAudioForCard.text = getString(R.string.btn_assign_audio)
                 }
             }
             return
         }
 
-        // 2. EMV Contactless Debit/Credit Card
-        val savedAudioPath = prefs.getString("card_audio_path_${cardInfo.id}", null)
-        val savedAudioName = prefs.getString("card_audio_name_${cardInfo.id}", null)
-        val hasAssociatedAudio = savedAudioPath != null && File(savedAudioPath).exists()
+        // MECHANISM 2: MOBILE PHONES
+        val isPhoneEnabled = prefs.getBoolean("phone_nfc_enabled", true)
+        if (!isPhoneEnabled) {
+            runOnUiThread {
+                binding.tvDetectionStatus.text = "Phone Detected (Disabled in Settings)"
+                binding.tvDetectionStatus.setTextColor(ContextCompat.getColor(this, R.color.status_amber))
+            }
+            return
+        }
 
-        isPickingForPhone = false
-        runOnUiThread {
-            binding.tvDetectionStatus.text = "Card Detected: ${cardInfo.displayName}"
-            binding.tvDetectionStatus.setTextColor(ContextCompat.getColor(this, R.color.status_green))
+        // Mobile Phone NFC is enabled: check paired phone song
+        val phoneAudioPath = prefs.getString("phone_paired_audio_path", null)
+        val phoneAudioName = prefs.getString("phone_paired_audio_name", null)
 
-            if (hasAssociatedAudio) {
+        if (phoneAudioPath != null && File(phoneAudioPath).exists()) {
+            // Already paired: Play immediately! Never asks again.
+            runOnUiThread {
+                binding.tvDetectionStatus.text = "Mobile Phone Detected!"
+                binding.tvDetectionStatus.setTextColor(ContextCompat.getColor(this, R.color.status_green))
                 binding.layoutNewCardPrompt.visibility = View.GONE
                 binding.layoutCardLinked.visibility = View.VISIBLE
-                binding.tvLinkedCardTitle.text = "Recognized: ${cardInfo.displayName}"
-                binding.tvLinkedAudioName.text = "Associated Audio: $savedAudioName"
-
-                playFile(File(savedAudioPath!!), savedAudioName ?: "Audio", cardInfo.displayName)
-            } else {
+                binding.tvLinkedCardTitle.text = "Phone Recognized"
+                binding.tvLinkedAudioName.text = "Playing: $phoneAudioName"
+            }
+            playFile(File(phoneAudioPath), phoneAudioName ?: "Phone Song", "Mobile Phone")
+        } else {
+            // First time: prompt user to pick the phone's song
+            isPickingForPhone = true
+            runOnUiThread {
+                binding.tvDetectionStatus.text = "Mobile Phone Detected!"
+                binding.tvDetectionStatus.setTextColor(ContextCompat.getColor(this, R.color.status_amber))
                 binding.layoutCardLinked.visibility = View.GONE
                 binding.layoutNewCardPrompt.visibility = View.VISIBLE
-                binding.tvNewCardTitle.text = "New Card: ${cardInfo.displayName}"
-                binding.tvNewCardDesc.text = "No audio is associated with this card yet. Choose an audio file to link with it."
-                binding.btnAssignAudioForCard.text = getString(R.string.btn_assign_audio)
+                binding.tvNewCardTitle.text = "New Phone Detected!"
+                binding.tvNewCardDesc.text = "Select the song you want mobile phones to play."
+                binding.btnAssignAudioForCard.text = "Choose Song for Phone"
             }
         }
     }
