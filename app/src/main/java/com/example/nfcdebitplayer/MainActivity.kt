@@ -10,6 +10,7 @@ import android.os.SystemClock
 import android.provider.Settings
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.example.nfcdebitplayer.databinding.ActivityMainBinding
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -91,21 +92,21 @@ class MainActivity : AppCompatActivity() {
         when {
             nfcAdapter == null -> {
                 binding.tvNfcStatus.text = getString(R.string.nfc_status_unsupported)
-                binding.tvNfcStatus.setTextColor(getColor(R.color.status_red))
+                binding.tvNfcStatus.setTextColor(ContextCompat.getColor(this, R.color.status_red))
                 binding.btnEnableNfc.visibility = View.GONE
                 binding.tvDetectionStatus.text = getString(R.string.nfc_status_unsupported)
                 appendLog("ERROR: Device does not have NFC hardware.")
             }
             !nfcAdapter!!.isEnabled -> {
                 binding.tvNfcStatus.text = getString(R.string.nfc_status_disabled)
-                binding.tvNfcStatus.setTextColor(getColor(R.color.status_amber))
+                binding.tvNfcStatus.setTextColor(ContextCompat.getColor(this, R.color.status_amber))
                 binding.btnEnableNfc.visibility = View.VISIBLE
                 binding.tvDetectionStatus.text = "NFC Disabled - Turn on NFC"
                 appendLog("WARNING: NFC is turned OFF in device settings.")
             }
             else -> {
                 binding.tvNfcStatus.text = getString(R.string.nfc_status_ready)
-                binding.tvNfcStatus.setTextColor(getColor(R.color.status_green))
+                binding.tvNfcStatus.setTextColor(ContextCompat.getColor(this, R.color.status_green))
                 binding.btnEnableNfc.visibility = View.GONE
                 binding.tvDetectionStatus.text = getString(R.string.detection_waiting)
                 appendLog("NFC Hardware ready & enabled.")
@@ -165,7 +166,7 @@ class MainActivity : AppCompatActivity() {
             if (supportsIsoDep) {
                 // ISO-DEP (ISO 14443-4) is the international standard used by EMV contactless cards
                 binding.tvDetectionStatus.text = getString(R.string.detection_card_detected)
-                binding.tvDetectionStatus.setTextColor(getColor(R.color.status_green))
+                binding.tvDetectionStatus.setTextColor(ContextCompat.getColor(this, R.color.status_green))
                 binding.layoutTagDetails.visibility = View.VISIBLE
                 binding.tvTagTechList.text = "Supported Techs: $techList\nStandard: ISO/IEC 14443-4 (EMV Compatible)"
 
@@ -177,7 +178,7 @@ class MainActivity : AppCompatActivity() {
             } else {
                 // Non-ISO-DEP tag (e.g. simple NFC sticker, MIFARE Classic, etc.)
                 binding.tvDetectionStatus.text = "NFC Tag Detected (Non-IsoDep)"
-                binding.tvDetectionStatus.setTextColor(getColor(R.color.status_amber))
+                binding.tvDetectionStatus.setTextColor(ContextCompat.getColor(this, R.color.status_amber))
                 binding.layoutTagDetails.visibility = View.VISIBLE
                 binding.tvTagTechList.text = "Supported Techs: $techList\nNote: Standard EMV debit cards use IsoDep."
 

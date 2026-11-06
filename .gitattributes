@@ -1,0 +1,3 @@
+# Ensure gradlew always keeps LF line endings on all OS checkouts
+gradlew text eol=lf
+*.bat text eol=crlf
