@@ -6,16 +6,19 @@
     android:layout_height="match_parent"
     android:background="@color/background">
 
+    <!-- Top App Bar in Vibrant Royal Blue -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/primary">
+        android:background="@color/primary"
+        app:elevation="0dp">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:title="@string/app_name"
+            app:titleCentered="true"
             app:titleTextColor="@color/on_primary" />
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -29,18 +32,20 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingHorizontal="18dp"
+            android:paddingVertical="16dp">
 
-            <!-- NFC Hardware Status Indicator -->
+            <!-- NFC Hardware Status Indicator (Clean Blue & White pill card) -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardNfcStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="14dp"
-                app:cardCornerRadius="14dp"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/surface"
+                app:cardCornerRadius="16dp"
                 app:cardElevation="1dp"
                 app:strokeColor="@color/card_stroke"
-                app:strokeWidth="1dp">
+                app:strokeWidth="1.5dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -55,7 +60,8 @@
                         android:layout_width="22dp"
                         android:layout_height="22dp"
                         android:contentDescription="@string/app_name"
-                        android:src="@drawable/ic_nfc" />
+                        android:src="@drawable/ic_nfc"
+                        app:tint="@color/primary" />
 
                     <TextView
                         android:id="@+id/tvNfcStatus"
@@ -64,7 +70,7 @@
                         android:layout_marginStart="12dp"
                         android:layout_weight="1"
                         android:text="@string/nfc_status_ready"
-                        android:textColor="@color/text_black"
+                        android:textColor="@color/text_title"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
@@ -72,37 +78,42 @@
                         android:id="@+id/btnEnableNfc"
                         style="@style/Widget.Material3.Button.TonalButton"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_height="38dp"
+                        android:backgroundTint="@color/primary_light"
                         android:text="@string/btn_enable_nfc"
+                        android:textColor="@color/primary"
                         android:textSize="12sp"
                         android:visibility="gone"
+                        app:cornerRadius="19dp"
                         tools:visibility="visible" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Hero Tap Card: Blue, Black & White with Graphic Illustration -->
+            <!-- Hero Tap Card with Animated Graphic on Top -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardDetectionStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="14dp"
-                app:cardCornerRadius="18dp"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/surface"
+                app:cardCornerRadius="22dp"
                 app:cardElevation="2dp"
                 app:strokeColor="@color/card_stroke"
-                app:strokeWidth="1dp">
+                app:strokeWidth="1.5dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_horizontal"
                     android:orientation="vertical"
-                    android:padding="24dp">
+                    android:padding="26dp">
 
+                    <!-- Hero Graphic with smooth floating tap animation -->
                     <ImageView
                         android:id="@+id/imgCardIcon"
-                        android:layout_width="100dp"
-                        android:layout_height="100dp"
-                        android:layout_marginBottom="16dp"
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:layout_marginBottom="18dp"
                         android:contentDescription="@string/app_name"
                         android:src="@drawable/ic_nfc_tap_hero" />
 
@@ -112,8 +123,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:text="@string/detection_waiting"
-                        android:textColor="@color/text_black"
-                        android:textSize="20sp"
+                        android:textColor="@color/text_title"
+                        android:textSize="22sp"
                         android:textStyle="bold" />
 
                     <TextView
@@ -131,7 +142,7 @@
                         android:id="@+id/layoutNewCardPrompt"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
+                        android:layout_marginTop="18dp"
                         android:background="@drawable/bg_alert_amber"
                         android:orientation="vertical"
                         android:padding="16dp"
@@ -153,18 +164,18 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="@string/new_card_desc"
-                            android:textColor="@color/text_black"
+                            android:textColor="@color/text_title"
                             android:textSize="13sp" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnAssignAudioForCard"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
+                            android:layout_height="48dp"
                             android:layout_marginTop="12dp"
-                            android:backgroundTint="@color/primary_accent"
+                            android:backgroundTint="@color/primary"
                             android:text="@string/btn_assign_audio"
                             android:textColor="@color/on_primary"
-                            app:cornerRadius="12dp"
+                            app:cornerRadius="24dp"
                             app:icon="@drawable/ic_music"
                             app:iconTint="@color/on_primary" />
                     </LinearLayout>
@@ -174,7 +185,7 @@
                         android:id="@+id/layoutCardLinked"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
+                        android:layout_marginTop="18dp"
                         android:background="@drawable/bg_alert_green"
                         android:orientation="vertical"
                         android:padding="16dp"
@@ -195,41 +206,43 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:textColor="@color/text_black"
+                            android:textColor="@color/text_title"
                             android:textSize="13sp"
-                            tools:text="Playing: song.mp3" />
+                            tools:text="Playing: my_song.mp3" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnChangeCardAudio"
                             style="@style/Widget.Material3.Button.OutlinedButton"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
+                            android:layout_height="42dp"
+                            android:layout_marginTop="10dp"
                             android:text="@string/btn_change_card_audio"
-                            android:textColor="@color/primary_accent"
+                            android:textColor="@color/primary"
                             android:textSize="12sp"
-                            app:cornerRadius="10dp"
-                            app:strokeColor="@color/primary_accent" />
+                            app:cornerRadius="21dp"
+                            app:strokeColor="@color/primary"
+                            app:strokeWidth="1.5dp" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Card 3: Audio Controls -->
+            <!-- Card 3: Audio Controls Card (Smooth pill buttons, clearly visible Stop) -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardAudioStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="14dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="1dp"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/surface"
+                app:cardCornerRadius="22dp"
+                app:cardElevation="2dp"
                 app:strokeColor="@color/card_stroke"
-                app:strokeWidth="1dp">
+                app:strokeWidth="1.5dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="20dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -242,24 +255,29 @@
                             android:layout_height="20dp"
                             android:layout_marginEnd="8dp"
                             android:contentDescription="@string/audio_status_title"
-                            android:src="@drawable/ic_music" />
+                            android:src="@drawable/ic_music"
+                            app:tint="@color/primary" />
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/audio_status_title"
-                            android:textColor="@color/text_black"
-                            android:textSize="14sp"
+                            android:textColor="@color/text_title"
+                            android:textSize="15sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/tvAudioStatus"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:background="@drawable/bg_card_subtle"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="4dp"
                             android:text="@string/audio_status_stopped"
                             android:textColor="@color/text_muted"
-                            android:textSize="13sp" />
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
                     </LinearLayout>
 
                     <!-- Active Sound Track Indicator -->
@@ -267,51 +285,60 @@
                         android:id="@+id/tvCurrentTrack"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="10dp"
                         android:text="@string/audio_current_track_default"
                         android:textColor="@color/text_muted"
                         android:textSize="13sp" />
 
-                    <!-- Play and Stop Buttons -->
+                    <!-- Play and Stop Buttons: Large, Smooth Pill buttons with clear contrast -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
+                        android:layout_marginTop="16dp"
                         android:orientation="horizontal">
 
+                        <!-- Smooth Solid Royal Blue Play Button -->
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnPlayAudio"
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="6dp"
+                            android:layout_height="52dp"
+                            android:layout_marginEnd="8dp"
                             android:layout_weight="1"
-                            android:backgroundTint="@color/primary_accent"
+                            android:backgroundTint="@color/primary"
                             android:text="@string/btn_play_audio"
                             android:textColor="@color/on_primary"
-                            app:cornerRadius="12dp"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            app:cornerRadius="26dp"
+                            app:elevation="2dp"
                             app:icon="@drawable/ic_play"
                             app:iconTint="@color/on_primary" />
 
+                        <!-- Smooth, Prominently Visible Red/Rose Tinted Stop Button -->
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnStopAudio"
                             style="@style/Widget.Material3.Button.OutlinedButton"
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="6dp"
+                            android:layout_height="52dp"
+                            android:layout_marginStart="8dp"
                             android:layout_weight="1"
+                            android:backgroundTint="@color/status_red_bg"
                             android:text="@string/btn_stop_audio"
-                            android:textColor="@color/text_black"
-                            app:cornerRadius="12dp"
+                            android:textColor="@color/status_red"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            app:cornerRadius="26dp"
                             app:icon="@drawable/ic_stop"
-                            app:iconTint="@color/text_black"
-                            app:strokeColor="@color/card_stroke" />
+                            app:iconTint="@color/status_red"
+                            app:strokeColor="@color/status_red"
+                            app:strokeWidth="1.5dp" />
                     </LinearLayout>
 
                     <!-- Secondary Option: Set Default Song or Reset -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
+                        android:layout_marginTop="8dp"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
@@ -322,7 +349,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/btn_select_audio"
-                            android:textColor="@color/primary_accent"
+                            android:textColor="@color/primary"
                             android:textSize="12sp" />
 
                         <com.google.android.material.button.MaterialButton

@@ -1,5 +1,6 @@
 package com.example.nfcdebitplayer
 
+import android.animation.ObjectAnimator
 import android.content.Intent
 import android.media.MediaPlayer
 import android.net.Uri
@@ -12,6 +13,8 @@ import android.provider.OpenableColumns
 import android.provider.Settings
 import android.view.View
 import android.view.WindowManager
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.OvershootInterpolator
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -33,6 +36,9 @@ class MainActivity : AppCompatActivity() {
     private var lastTagDetectedTime: Long = 0L
     private val debounceIntervalMs: Long = 2000L
 
+    // Smooth floating animation on the hero tap illustration
+    private var heroFloatAnimator: ObjectAnimator? = null
+
     // Launcher for picking custom audio files
     private val pickAudioLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let { handleCustomAudioSelected(it) }
@@ -49,6 +55,7 @@ class MainActivity : AppCompatActivity() {
 
         setupUI()
         updateAudioTrackDisplay()
+        startHeroTapAnimation()
 
         handleNfcIntent(intent)
     }
@@ -95,16 +102,52 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         checkNfcAvailability()
         enableNfcReaderMode()
+        startHeroTapAnimation()
     }
 
     override fun onPause() {
         super.onPause()
         disableNfcReaderMode()
+        heroFloatAnimator?.cancel()
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        heroFloatAnimator?.cancel()
         releaseMediaPlayer()
+    }
+
+    /**
+     * Gentle, continuous floating tap animation on the top hero illustration.
+     */
+    private fun startHeroTapAnimation() {
+        heroFloatAnimator?.cancel()
+        heroFloatAnimator = ObjectAnimator.ofFloat(binding.imgCardIcon, View.TRANSLATION_Y, 0f, -12f, 0f).apply {
+            duration = 2200
+            repeatCount = ObjectAnimator.INFINITE
+            repeatMode = ObjectAnimator.RESTART
+            interpolator = AccelerateDecelerateInterpolator()
+            start()
+        }
+    }
+
+    /**
+     * Celebratory bounce animation triggered the moment a card is detected.
+     */
+    private fun animateCardDetected() {
+        binding.imgCardIcon.animate()
+            .scaleX(1.15f)
+            .scaleY(1.15f)
+            .setDuration(180)
+            .withEndAction {
+                binding.imgCardIcon.animate()
+                    .scaleX(1.0f)
+                    .scaleY(1.0f)
+                    .setDuration(260)
+                    .setInterpolator(OvershootInterpolator())
+                    .start()
+            }
+            .start()
     }
 
     private fun setupUI() {
@@ -154,7 +197,7 @@ class MainActivity : AppCompatActivity() {
             }
             else -> {
                 binding.tvNfcStatus.text = getString(R.string.nfc_status_ready)
-                binding.tvNfcStatus.setTextColor(ContextCompat.getColor(this, R.color.status_green))
+                binding.tvNfcStatus.setTextColor(ContextCompat.getColor(this, R.color.primary))
                 binding.btnEnableNfc.visibility = View.GONE
                 if (currentCardInfo == null) {
                     binding.tvDetectionStatus.text = getString(R.string.detection_waiting)
@@ -186,7 +229,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Fast card discovery callback.
+     * Fast card discovery callback with lively animation.
      */
     private fun handleDiscoveredTag(tag: Tag) {
         val now = SystemClock.elapsedRealtime()
@@ -204,6 +247,8 @@ class MainActivity : AppCompatActivity() {
         val hasAssociatedAudio = savedAudioPath != null && File(savedAudioPath).exists()
 
         runOnUiThread {
+            animateCardDetected()
+
             binding.tvDetectionStatus.text = cardInfo.displayName
             binding.tvDetectionStatus.setTextColor(ContextCompat.getColor(this, R.color.status_green))
 
