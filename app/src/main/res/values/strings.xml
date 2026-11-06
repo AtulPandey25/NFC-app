@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">NFC Debit Card Player</string>
+    <string name="app_name">NFC Player</string>
 
     <!-- NFC Status Strings -->
     <string name="nfc_status_title">NFC Hardware Status</string>
@@ -8,25 +8,33 @@
     <string name="nfc_status_unsupported">NFC hardware is NOT supported on this device</string>
     <string name="btn_enable_nfc">Enable NFC in Settings</string>
 
+    <!-- Mobile Phone NFC Control Strings -->
+    <string name="phone_nfc_title">Mobile Phone NFC Playback</string>
+    <string name="phone_nfc_switch">Enable Mobile Phone NFC</string>
+    <string name="phone_nfc_desc">Allow tapping another smartphone to trigger audio playback</string>
+    <string name="phone_nfc_track_none">Phone Song: None (tap to choose)</string>
+    <string name="btn_set_phone_audio">Set Phone Song</string>
+    <string name="btn_change_phone_audio">Change Phone Song</string>
+
     <!-- Detection Status Strings -->
-    <string name="detection_status_title">Card Detection Status</string>
-    <string name="detection_waiting">Waiting for contactless card…</string>
-    <string name="detection_card_detected">Compatible Card Detected!</string>
-    <string name="detection_prompt_hint">Hold your contactless debit card against the back of your phone</string>
-    <string name="detection_tag_details_title">Discovered Card Details:</string>
+    <string name="detection_status_title">Detection Status</string>
+    <string name="detection_waiting">Waiting for card or phone…</string>
+    <string name="detection_card_detected">Compatible Device Detected!</string>
+    <string name="detection_prompt_hint">Hold your card or phone against the back of this phone</string>
+    <string name="detection_tag_details_title">Discovered Device Details:</string>
 
     <!-- New Card Prompt Strings -->
-    <string name="new_card_title">New Card Detected!</string>
-    <string name="new_card_desc">No audio is associated with this card yet. Choose an audio file to link with it.</string>
-    <string name="btn_assign_audio">Choose Audio for this Card</string>
-    <string name="btn_change_card_audio">Change Audio for this Card</string>
+    <string name="new_card_title">New Device Detected!</string>
+    <string name="new_card_desc">No audio is associated with this device yet. Choose an audio file to link with it.</string>
+    <string name="btn_assign_audio">Choose Audio for this Device</string>
+    <string name="btn_change_card_audio">Change Audio for this Device</string>
 
     <!-- Audio Controls Strings -->
     <string name="audio_status_title">Audio Playback</string>
     <string name="audio_status_stopped">Status: Stopped</string>
     <string name="audio_status_playing">Status: Playing</string>
-    <string name="audio_current_track_default">Audio File: Default Chime (card_chime.wav)</string>
-    <string name="btn_select_audio">Choose Audio from Phone</string>
+    <string name="audio_current_track_default">Default Audio: Chime (card_chime.wav)</string>
+    <string name="btn_select_audio">Choose Default Audio</string>
     <string name="btn_reset_audio">Reset to Default Sound</string>
     <string name="btn_play_audio">Test Play</string>
     <string name="btn_stop_audio">Stop Sound</string>

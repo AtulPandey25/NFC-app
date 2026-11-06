@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "NFC Debit Card Audio Player"
+rootProject.name = "NFC Player"
 include(":app")

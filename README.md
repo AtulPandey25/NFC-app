@@ -1,6 +1,6 @@
-# NFC Debit Card Audio Player
+# NFC Player
 
-A native Android application built with **Kotlin** and **Android Studio** that detects contactless NFC debit cards using Android's native Reader Mode and plays an audio file automatically.
+A native Android application built with **Kotlin** and **Android Studio** that detects contactless NFC debit cards and NFC-enabled smartphones to play audio files automatically.
 
 ---
 
