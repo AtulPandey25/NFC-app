@@ -5,11 +5,13 @@ import android.media.MediaPlayer
 import android.net.Uri
 import android.nfc.NfcAdapter
 import android.nfc.Tag
+import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
 import android.provider.OpenableColumns
 import android.provider.Settings
 import android.view.View
+import android.view.WindowManager
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -27,10 +29,10 @@ class MainActivity : AppCompatActivity() {
     private var nfcAdapter: NfcAdapter? = null
     private var mediaPlayer: MediaPlayer? = null
 
-    // Holds the currently active or pending card for audio association
+    // Holds the currently active or pending card/device for audio association
     private var currentCardInfo: CardInfo? = null
 
-    // Debounce window to prevent repeated restarts while card is held near phone
+    // Debounce window to prevent repeated restarts while device is held near phone
     private var lastTagDetectedTime: Long = 0L
     private val debounceIntervalMs: Long = 2500L
 
@@ -44,6 +46,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Allow app to show & wake up if phone was locked or sleeping
+        setupScreenWake()
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -52,7 +58,59 @@ class MainActivity : AppCompatActivity() {
         setupUI()
         updateAudioTrackDisplay()
         appendLog("App initialized.")
-        appendLog("Smart Per-Card Audio matching active.")
+
+        // Show this device's own HCE phone ID
+        val localPhoneId = PhoneHceService.getOrCreateDeviceId(this)
+        appendLog("This device NFC ID: $localPhoneId")
+        appendLog("Background NFC active: Can wake when closed.")
+
+        // Handle cold-start from background NFC tap
+        handleNfcIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        // Handle warm-start / background NFC tap
+        handleNfcIntent(intent)
+    }
+
+    private fun setupScreenWake() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true)
+            setTurnScreenOn(true)
+        } else {
+            @Suppress("DEPRECATION")
+            window.addFlags(
+                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+            )
+        }
+    }
+
+    /**
+     * Handles background NFC launch intents when app was closed.
+     */
+    private fun handleNfcIntent(intent: Intent?) {
+        if (intent == null) return
+        val action = intent.action ?: return
+
+        if (action == NfcAdapter.ACTION_TECH_DISCOVERED ||
+            action == NfcAdapter.ACTION_TAG_DISCOVERED ||
+            action == NfcAdapter.ACTION_NDEF_DISCOVERED
+        ) {
+            val tag: Tag? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
+            }
+
+            tag?.let {
+                appendLog("Background NFC trigger received ($action)")
+                handleDiscoveredTag(it)
+            }
+        }
     }
 
     override fun onResume() {
@@ -68,7 +126,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        stopAudio()
+        // Do not immediately kill audio if triggered from background
     }
 
     override fun onDestroy() {
@@ -81,7 +139,6 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(Settings.ACTION_NFC_SETTINGS))
         }
 
-        // When a new card without audio is tapped, this button lets the user pick its audio
         binding.btnAssignAudioForCard.setOnClickListener {
             pickAudioLauncher.launch("audio/*")
         }
@@ -90,9 +147,8 @@ class MainActivity : AppCompatActivity() {
             pickAudioLauncher.launch("audio/*")
         }
 
-        // General custom audio picker (sets default/global audio)
         binding.btnSelectAudio.setOnClickListener {
-            currentCardInfo = null // picking general audio
+            currentCardInfo = null
             pickAudioLauncher.launch("audio/*")
         }
 
@@ -116,9 +172,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Checks device NFC availability and displays the appropriate status.
-     */
     private fun checkNfcAvailability() {
         when {
             nfcAdapter == null -> {
@@ -148,7 +201,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Enables Android Reader Mode specifically tuned for contactless cards.
+     * Enables Android Reader Mode detecting Cards, Phones, and Tags.
      */
     private fun enableNfcReaderMode() {
         val adapter = nfcAdapter ?: return
@@ -156,6 +209,8 @@ class MainActivity : AppCompatActivity() {
 
         val flags = NfcAdapter.FLAG_READER_NFC_A or
                 NfcAdapter.FLAG_READER_NFC_B or
+                NfcAdapter.FLAG_READER_NFC_F or
+                NfcAdapter.FLAG_READER_NFC_V or
                 NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK or
                 NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS
 
@@ -167,7 +222,7 @@ class MainActivity : AppCompatActivity() {
             handleDiscoveredTag(tag)
         }, flags, extras)
 
-        appendLog("NFC Reader Mode activated. Waiting for card...")
+        appendLog("NFC Reader Mode active (Cards & Phones supported).")
     }
 
     private fun disableNfcReaderMode() {
@@ -176,7 +231,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Callback invoked when an NFC tag/contactless card is presented.
+     * Callback invoked when an NFC card or phone is presented.
      */
     private fun handleDiscoveredTag(tag: Tag) {
         val now = SystemClock.elapsedRealtime()
@@ -185,7 +240,7 @@ class MainActivity : AppCompatActivity() {
         }
         lastTagDetectedTime = now
 
-        // Read card identification details (masked PAN or UID fallback)
+        // Read card/phone identification
         val cardInfo = EmvCardReader.readCard(tag)
         currentCardInfo = cardInfo
 
@@ -196,39 +251,36 @@ class MainActivity : AppCompatActivity() {
         val hasAssociatedAudio = savedAudioPath != null && File(savedAudioPath).exists()
 
         runOnUiThread {
-            binding.tvDetectionStatus.text = "Card Detected: ${cardInfo.displayName}"
+            binding.tvDetectionStatus.text = "Detected: ${cardInfo.displayName}"
             binding.tvDetectionStatus.setTextColor(ContextCompat.getColor(this, R.color.status_green))
 
             binding.layoutTagDetails.visibility = View.VISIBLE
             binding.tvTagTechList.text = "Type: ${cardInfo.scheme}\nIdentifier: ${cardInfo.displayName}"
 
             if (hasAssociatedAudio) {
-                // Card is already recognized and has an associated audio file!
+                // Device/Card recognized with associated audio!
                 binding.layoutNewCardPrompt.visibility = View.GONE
                 binding.layoutCardLinked.visibility = View.VISIBLE
                 binding.tvLinkedCardTitle.text = "Recognized: ${cardInfo.displayName}"
                 binding.tvLinkedAudioName.text = "Associated Audio: $savedAudioName"
 
-                appendLog("CARD RECOGNIZED: ${cardInfo.displayName}")
+                appendLog("DEVICE RECOGNIZED: ${cardInfo.displayName}")
                 appendLog("Playing mapped audio: $savedAudioName")
 
-                playFile(File(savedAudioPath!!), savedAudioName ?: "Card Audio", cardInfo.displayName)
+                playFile(File(savedAudioPath!!), savedAudioName ?: "Audio", cardInfo.displayName)
             } else {
-                // First time this card is detected (or no audio linked yet)
+                // First time this card or phone is detected
                 binding.layoutCardLinked.visibility = View.GONE
                 binding.layoutNewCardPrompt.visibility = View.VISIBLE
-                binding.tvNewCardTitle.text = "New Card: ${cardInfo.displayName}"
-                binding.tvNewCardDesc.text = "No audio is associated with this card yet. Select an audio file to link with this card."
+                binding.tvNewCardTitle.text = "New Device: ${cardInfo.displayName}"
+                binding.tvNewCardDesc.text = "No audio is associated with this device yet. Tap below to select an audio file."
 
-                appendLog("NEW CARD DETECTED: ${cardInfo.displayName}")
-                appendLog("Prompting user to choose audio for this card...")
+                appendLog("NEW DEVICE DETECTED: ${cardInfo.displayName}")
+                appendLog("Prompting user to choose audio for this device...")
             }
         }
     }
 
-    /**
-     * Handles audio selected from the file picker.
-     */
     private fun handleCustomAudioSelected(uri: Uri) {
         try {
             var fileName = "Custom Audio"
@@ -243,7 +295,6 @@ class MainActivity : AppCompatActivity() {
             val prefs = getSharedPreferences("nfc_prefs", MODE_PRIVATE)
 
             if (card != null) {
-                // Linking audio to a specific card!
                 val targetFile = File(filesDir, "card_audio_${card.id}")
                 contentResolver.openInputStream(uri)?.use { input ->
                     FileOutputStream(targetFile).use { output ->
@@ -263,12 +314,10 @@ class MainActivity : AppCompatActivity() {
                 binding.tvLinkedAudioName.text = "Associated Audio: $fileName"
 
                 appendLog("SUCCESS: Linked '$fileName' to ${card.displayName}!")
-                appendLog("Next time this card is tapped, it will play '$fileName' automatically.")
+                appendLog("Next time this device/card is tapped, it will play '$fileName' automatically.")
 
-                // Play the newly selected audio immediately
                 playFile(targetFile, fileName, card.displayName)
             } else {
-                // General default audio setting
                 val targetFile = File(filesDir, "custom_card_sound")
                 contentResolver.openInputStream(uri)?.use { input ->
                     FileOutputStream(targetFile).use { output ->
@@ -334,7 +383,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             binding.tvAudioStatus.text = "Status: Playing ($trackName)"
-            appendLog("Playing audio: $trackName ($triggerSource)...")
+            appendLog("Playing: $trackName ($triggerSource)...")
         } catch (e: Exception) {
             appendLog("Audio Playback Error: ${e.message}")
         }

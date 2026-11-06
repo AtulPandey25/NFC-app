@@ -5,13 +5,16 @@ import android.nfc.tech.IsoDep
 import java.security.MessageDigest
 
 data class CardInfo(
-    val id: String,           // Unique key for mapping (SHA-256 hash or UID)
-    val displayName: String,  // User-facing name (e.g. "Visa •••• 1234")
-    val scheme: String,       // "Visa", "Mastercard", "RuPay", "NFC Tag", etc.
+    val id: String,           // Unique key for mapping (SHA-256 hash, Phone ID, or UID)
+    val displayName: String,  // User-facing name (e.g. "Visa •••• 1234" or "NFC Phone A1B2")
+    val scheme: String,       // "Visa", "Mastercard", "RuPay", "Android Phone", "NFC Device", etc.
     val isEmv: Boolean
 )
 
 object EmvCardReader {
+
+    // Custom AID for phone-to-phone pairing with this app
+    private val PHONE_APP_AID = byteArrayOf(0xF0.toByte(), 0x01, 0x02, 0x03, 0x04, 0x05, 0x06)
 
     private val PPSE = "2PAY.SYS.DDF01".toByteArray(Charsets.US_ASCII)
 
@@ -25,8 +28,11 @@ object EmvCardReader {
     )
 
     /**
-     * Attempts to read the contactless card info via ISO-DEP EMV commands.
-     * If reading fails or the card is not an EMV card, falls back to tag UID.
+     * Reads card, phone, or NFC tag interaction.
+     * Detects:
+     * 1. Other NFC phones running this app (via custom HCE AID).
+     * 2. Contactless EMV debit/credit cards (Visa, Mastercard, RuPay, etc.).
+     * 3. Generic NFC phones / devices / tags.
      */
     fun readCard(tag: Tag): CardInfo {
         val isoDep = IsoDep.get(tag)
@@ -45,10 +51,27 @@ object EmvCardReader {
             isoDep.timeout = 2000
             isoDep.connect()
 
+            // 1. Check if the touching device is another phone running our app
+            val phoneApdu = createSelectApdu(PHONE_APP_AID)
+            val phoneResp = isoDep.transceive(phoneApdu)
+            if (isSuccess(phoneResp) && phoneResp.size > 2) {
+                val returnedId = String(phoneResp, 0, phoneResp.size - 2, Charsets.UTF_8).trim()
+                if (returnedId.startsWith("PHONE_")) {
+                    isoDep.close()
+                    val shortId = returnedId.removePrefix("PHONE_")
+                    return CardInfo(
+                        id = returnedId,
+                        displayName = "Phone ($shortId)",
+                        scheme = "NFC Smartphone",
+                        isEmv = false
+                    )
+                }
+            }
+
+            // 2. Not a companion phone; check if it's an EMV contactless payment card
             var pan: String? = null
             var scheme = "Card"
 
-            // 1. Try PPSE
             val ppseApdu = createSelectApdu(PPSE)
             val ppseResp = isoDep.transceive(ppseApdu)
 
@@ -60,7 +83,6 @@ object EmvCardReader {
                 aids.addAll(KNOWN_AIDS)
             }
 
-            // 2. Select AID and try to read PAN
             for (aid in aids) {
                 scheme = detectScheme(aid)
                 val selectAidApdu = createSelectApdu(aid)
@@ -68,17 +90,14 @@ object EmvCardReader {
 
                 if (!isSuccess(aidResp)) continue
 
-                // 3. Get Processing Options (GPO)
                 val pdol = extractPdol(aidResp)
                 val gpoApdu = createGpoApdu(pdol)
                 val gpoResp = isoDep.transceive(gpoApdu)
 
                 if (isSuccess(gpoResp)) {
-                    // Check if PAN is inside GPO response directly
                     pan = extractPanFromTlv(gpoResp)
                     if (pan != null) break
 
-                    // 4. Extract AFL and read records
                     val afl = extractAfl(gpoResp)
                     for ((sfi, record) in afl) {
                         val readApdu = byteArrayOf(
@@ -121,12 +140,16 @@ object EmvCardReader {
             try { isoDep.close() } catch (_: Exception) {}
         }
 
-        // Fallback to Tag UID if APDU failed
+        // 3. Fallback: If it's a phone without our app or another ISO-DEP device
+        val isLikelyPhone = uidHex.startsWith("08") || uidHex.length == 8
+        val deviceLabel = if (isLikelyPhone) "NFC Device / Phone ($uidHex)" else "Contactless Card ($uidHex)"
+        val schemeLabel = if (isLikelyPhone) "NFC Phone/Device" else "ISO-DEP"
+
         return CardInfo(
             id = uidHex,
-            displayName = "Contactless Card ($uidHex)",
-            scheme = "ISO-DEP",
-            isEmv = true
+            displayName = deviceLabel,
+            scheme = schemeLabel,
+            isEmv = false
         )
     }
 
@@ -153,7 +176,6 @@ object EmvCardReader {
         val data = ByteArray(2 + pdolLen)
         data[0] = 0x83.toByte()
         data[1] = pdolLen.toByte()
-        // data padded with zeros for PDOL
 
         val apdu = ByteArray(5 + data.size + 1)
         apdu[0] = 0x80.toByte()
@@ -189,7 +211,6 @@ object EmvCardReader {
         while (i < bytes.size - 3) {
             if (bytes[i] == 0x9F.toByte() && bytes[i + 1] == 0x38.toByte()) {
                 val len = bytes[i + 2].toInt() and 0xFF
-                // sum lengths in PDOL tags
                 var total = 0
                 var p = i + 3
                 while (p < i + 3 + len) {
@@ -234,7 +255,6 @@ object EmvCardReader {
     private fun extractPanFromTlv(bytes: ByteArray): String? {
         val hex = bytes.joinToString("") { "%02X".format(it) }
 
-        // Look for Tag 5A (PAN)
         val tag5aIndex = hex.indexOf("5A")
         if (tag5aIndex != -1 && tag5aIndex + 4 < hex.length) {
             try {
@@ -247,7 +267,6 @@ object EmvCardReader {
             } catch (_: Exception) {}
         }
 
-        // Look for Tag 57 (Track 2 Equivalent Data)
         val tag57Index = hex.indexOf("57")
         if (tag57Index != -1 && tag57Index + 4 < hex.length) {
             try {

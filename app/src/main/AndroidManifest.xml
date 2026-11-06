@@ -1,16 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Required for detecting contactless NFC cards -->
+    <!-- Required for NFC card & phone detection -->
     <uses-permission android:name="android.permission.NFC" />
 
-    <!-- Setting required="false" allows the app to be installed and run on devices 
-         without NFC hardware, so the app can display a graceful fallback message -->
     <uses-feature
         android:name="android.hardware.nfc"
         android:required="false" />
 
-    <!-- NOTE: ZERO internet permission is requested. The app runs completely offline. -->
+    <!-- Enables Host Card Emulation so other phones can detect this phone -->
+    <uses-feature
+        android:name="android.hardware.nfc.hce"
+        android:required="false" />
+
+    <!-- ZERO internet permission requested. Runs 100% offline. -->
 
     <application
         android:allowBackup="true"
@@ -19,15 +22,46 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.NfcDebitCardAudioPlayer">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleTop">
+            android:launchMode="singleTask">
+
+            <!-- Standard launcher filter -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- Background NFC Intent Filters (detects cards & phones when app is closed) -->
+            <intent-filter>
+                <action android:name="android.nfc.action.TECH_DISCOVERED" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.nfc.action.TAG_DISCOVERED" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.nfc.action.TECH_DISCOVERED"
+                android:resource="@xml/nfc_tech_filter" />
         </activity>
+
+        <!-- HCE Service so other NFC phones detect this device -->
+        <service
+            android:name=".PhoneHceService"
+            android:exported="true"
+            android:permission="android.permission.BIND_NFC_SERVICE">
+            <intent-filter>
+                <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.nfc.cardemulation.host_apdu_service"
+                android:resource="@xml/apduservice" />
+        </service>
+
     </application>
 
 </manifest>
