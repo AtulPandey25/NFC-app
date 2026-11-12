@@ -240,13 +240,17 @@ class MainActivity : AppCompatActivity() {
         }
         lastTagDetectedTime = now
 
-        val cardInfo = EmvCardReader.readCard(tag)
+        var cardInfo = EmvCardReader.readCard(tag)
+        val preloaded = PreloadedTags.get(cardInfo.id)
+        if (preloaded != null) {
+            cardInfo = cardInfo.copy(displayName = preloaded.title)
+        }
         currentCardInfo = cardInfo
         val prefs = getSharedPreferences("nfc_prefs", MODE_PRIVATE)
 
         val savedAudioPath = prefs.getString("card_audio_path_${cardInfo.id}", null)
         val savedAudioName = prefs.getString("card_audio_name_${cardInfo.id}", null)
-        val hasAssociatedAudio = savedAudioPath != null && File(savedAudioPath).exists()
+        val hasCustomAudio = savedAudioPath != null && File(savedAudioPath).exists()
 
         val isNfcTag = !cardInfo.isEmv
 
@@ -256,13 +260,20 @@ class MainActivity : AppCompatActivity() {
             binding.tvDetectionStatus.text = cardInfo.displayName
             binding.tvDetectionStatus.setTextColor(ContextCompat.getColor(this, R.color.status_green))
 
-            if (hasAssociatedAudio) {
+            if (hasCustomAudio) {
                 binding.layoutNewCardPrompt.visibility = View.GONE
                 binding.layoutCardLinked.visibility = View.VISIBLE
-                binding.tvLinkedCardTitle.text = if (isNfcTag) "NFC Tag Recognized" else "Card Recognized"
+                binding.tvLinkedCardTitle.text = if (isNfcTag) "NFC Tag: ${cardInfo.displayName}" else "Card Recognized"
                 binding.tvLinkedAudioName.text = "Playing: $savedAudioName"
 
                 playFile(File(savedAudioPath!!), savedAudioName ?: "Audio", cardInfo.displayName)
+            } else if (preloaded != null) {
+                binding.layoutNewCardPrompt.visibility = View.GONE
+                binding.layoutCardLinked.visibility = View.VISIBLE
+                binding.tvLinkedCardTitle.text = "NFC Tag: ${preloaded.title}"
+                binding.tvLinkedAudioName.text = "Playing: ${preloaded.title}"
+
+                playRawResource(preloaded.rawResId, preloaded.title, cardInfo.displayName)
             } else {
                 binding.layoutCardLinked.visibility = View.GONE
                 binding.layoutNewCardPrompt.visibility = View.VISIBLE
@@ -373,7 +384,29 @@ class MainActivity : AppCompatActivity() {
             }
 
             binding.tvAudioStatus.text = "Status: Playing ($trackName)"
-        } catch (_: Exception) {}
+        } catch (_: Exception) {
+            binding.tvAudioStatus.text = "Status: Playback error"
+        }
+    }
+
+    private fun playRawResource(resId: Int, trackName: String, triggerSource: String) {
+        try {
+            mediaPlayer?.let {
+                if (it.isPlaying) it.stop()
+                it.release()
+            }
+
+            mediaPlayer = MediaPlayer.create(this, resId)?.apply {
+                setOnCompletionListener {
+                    binding.tvAudioStatus.text = getString(R.string.audio_status_stopped)
+                }
+                start()
+            }
+
+            binding.tvAudioStatus.text = "Status: Playing ($trackName)"
+        } catch (_: Exception) {
+            binding.tvAudioStatus.text = "Status: Playback error"
+        }
     }
 
     private fun playCurrentConfiguredAudio(trigger: String) {
@@ -387,6 +420,12 @@ class MainActivity : AppCompatActivity() {
                 playFile(File(savedPath), savedName ?: "Card Audio", trigger)
                 return
             }
+
+            val preloaded = PreloadedTags.get(card.id)
+            if (preloaded != null) {
+                playRawResource(preloaded.rawResId, preloaded.title, trigger)
+                return
+            }
         }
 
         val isCustom = prefs.getBoolean("is_custom_audio", false)
@@ -396,19 +435,7 @@ class MainActivity : AppCompatActivity() {
         if (isCustom && customFile.exists()) {
             playFile(customFile, customName ?: "Custom Audio", trigger)
         } else {
-            try {
-                mediaPlayer?.let {
-                    if (it.isPlaying) it.stop()
-                    it.release()
-                }
-                mediaPlayer = MediaPlayer.create(this, R.raw.card_chime).apply {
-                    setOnCompletionListener {
-                        binding.tvAudioStatus.text = getString(R.string.audio_status_stopped)
-                    }
-                    start()
-                }
-                binding.tvAudioStatus.text = "Status: Playing (Default Sound)"
-            } catch (_: Exception) {}
+            playRawResource(R.raw.card_chime, "Default Sound", trigger)
         }
     }
 
