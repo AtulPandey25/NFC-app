@@ -212,6 +212,8 @@ class MainActivity : AppCompatActivity() {
 
         val flags = NfcAdapter.FLAG_READER_NFC_A or
                 NfcAdapter.FLAG_READER_NFC_B or
+                NfcAdapter.FLAG_READER_NFC_F or
+                NfcAdapter.FLAG_READER_NFC_V or
                 NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK or
                 NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS
 
@@ -246,6 +248,8 @@ class MainActivity : AppCompatActivity() {
         val savedAudioName = prefs.getString("card_audio_name_${cardInfo.id}", null)
         val hasAssociatedAudio = savedAudioPath != null && File(savedAudioPath).exists()
 
+        val isNfcTag = !cardInfo.isEmv
+
         runOnUiThread {
             animateCardDetected()
 
@@ -255,16 +259,22 @@ class MainActivity : AppCompatActivity() {
             if (hasAssociatedAudio) {
                 binding.layoutNewCardPrompt.visibility = View.GONE
                 binding.layoutCardLinked.visibility = View.VISIBLE
-                binding.tvLinkedCardTitle.text = "Card Recognized"
+                binding.tvLinkedCardTitle.text = if (isNfcTag) "NFC Tag Recognized" else "Card Recognized"
                 binding.tvLinkedAudioName.text = "Playing: $savedAudioName"
 
-                playFile(File(savedAudioPath!!), savedAudioName ?: "Card Audio", cardInfo.displayName)
+                playFile(File(savedAudioPath!!), savedAudioName ?: "Audio", cardInfo.displayName)
             } else {
                 binding.layoutCardLinked.visibility = View.GONE
                 binding.layoutNewCardPrompt.visibility = View.VISIBLE
-                binding.tvNewCardTitle.text = "New Card: ${cardInfo.displayName}"
-                binding.tvNewCardDesc.text = "No audio is linked to this card yet. Choose a song to link with it."
-                binding.btnAssignAudioForCard.text = getString(R.string.btn_assign_audio)
+                if (isNfcTag) {
+                    binding.tvNewCardTitle.text = "New ${cardInfo.displayName}"
+                    binding.tvNewCardDesc.text = "No sound is linked to this NFC tag yet. Choose a sound to link with it."
+                    binding.btnAssignAudioForCard.text = "Link Sound to this Tag"
+                } else {
+                    binding.tvNewCardTitle.text = "New Card: ${cardInfo.displayName}"
+                    binding.tvNewCardDesc.text = "No audio is linked to this card yet. Choose a song to link with it."
+                    binding.btnAssignAudioForCard.text = getString(R.string.btn_assign_audio)
+                }
             }
         }
     }

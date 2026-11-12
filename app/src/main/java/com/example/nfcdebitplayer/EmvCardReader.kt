@@ -34,9 +34,9 @@ object EmvCardReader {
 
         if (isoDep == null) {
             return CardInfo(
-                id = uidHex,
-                displayName = "Card ($uidHex)",
-                scheme = "Card",
+                id = "TAG_$uidHex",
+                displayName = "NFC Tag ($uidHex)",
+                scheme = "NFC Tag",
                 isEmv = false
             )
         }

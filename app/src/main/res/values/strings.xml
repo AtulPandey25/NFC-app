@@ -9,13 +9,13 @@
 
     <!-- Detection Status Strings -->
     <string name="detection_waiting">Ready to Scan</string>
-    <string name="detection_prompt_hint">Tap your contactless debit card to the back of this phone</string>
+    <string name="detection_prompt_hint">Tap your contactless debit card or NFC tag to the back of this phone</string>
 
     <!-- Card Prompt Strings -->
     <string name="new_card_title">New Card Detected!</string>
     <string name="new_card_desc">No audio is linked to this card yet. Choose a song to link with it.</string>
     <string name="btn_assign_audio">Link Song to this Card</string>
-    <string name="btn_change_card_audio">Change Card Song</string>
+    <string name="btn_change_card_audio">Change Sound</string>
 
     <!-- Audio Controls Strings -->
     <string name="audio_status_title">Audio Controls</string>
