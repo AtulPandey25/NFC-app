@@ -22,7 +22,7 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("release.keystore")
+            storeFile = file("release.jks")
             storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "AtulAudio2026"
             keyAlias = System.getenv("KEY_ALIAS") ?: "nfcplayer"
             keyPassword = System.getenv("KEY_PASSWORD") ?: "AtulAudio2026"
