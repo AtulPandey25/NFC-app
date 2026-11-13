@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.nfcdebitplayer"
+    namespace = "com.atul.nfcaudioplayer"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.nfcdebitplayer"
+        applicationId = "com.atul.nfcaudioplayer"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -20,13 +20,26 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("release.keystore")
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "AtulAudio2026"
+            keyAlias = System.getenv("KEY_ALIAS") ?: "nfcplayer"
+            keyPassword = System.getenv("KEY_PASSWORD") ?: "AtulAudio2026"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+        debug {
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {

@@ -1,4 +1,4 @@
-package com.example.nfcdebitplayer
+package com.atul.nfcaudioplayer
 
 data class PreloadedTagAudio(
     val rawResId: Int,

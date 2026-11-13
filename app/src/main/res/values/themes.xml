@@ -1,6 +1,6 @@
 <resources>
     <!-- Base application theme. -->
-    <style name="Theme.NfcDebitCardAudioPlayer" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.NfcAudioPlayer" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/primary</item>
         <item name="colorOnPrimary">@color/on_primary</item>

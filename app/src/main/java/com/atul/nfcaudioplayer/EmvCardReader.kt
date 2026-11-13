@@ -1,4 +1,4 @@
-package com.example.nfcdebitplayer
+package com.atul.nfcaudioplayer
 
 import android.nfc.Tag
 import android.nfc.tech.IsoDep

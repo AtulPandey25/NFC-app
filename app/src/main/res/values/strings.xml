@@ -9,7 +9,7 @@
 
     <!-- Detection Status Strings -->
     <string name="detection_waiting">Ready to Scan</string>
-    <string name="detection_prompt_hint">Tap your contactless debit card or NFC tag to the back of this phone</string>
+    <string name="detection_prompt_hint">Tap your NFC tag or card to the back of this phone</string>
 
     <!-- Card Prompt Strings -->
     <string name="new_card_title">New Card Detected!</string>

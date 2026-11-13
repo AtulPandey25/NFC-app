@@ -40,7 +40,7 @@ NFCPRojet/
 │   └── src/
 │       └── main/
 │           ├── AndroidManifest.xml
-│           ├── java/com/example/nfcdebitplayer/
+│           ├── java/com/atul/nfcaudioplayer/
 │           │   └── MainActivity.kt
 │           └── res/
 │               ├── drawable/       # Icons for NFC, Card, Play, Stop
